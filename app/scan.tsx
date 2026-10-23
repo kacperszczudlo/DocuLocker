@@ -107,13 +107,15 @@ export default function ScanScreen() {
         });
       }
 
+      console.log('[DocuLocker] ImagePicker result canceled:', result.canceled, 'assets:', result.assets?.length);
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedUri = result.assets[0].uri;
+        console.log('[DocuLocker] Image selected uri:', selectedUri);
         setImageUri(selectedUri);
         await processReceiptImage(selectedUri);
       }
     } catch (err) {
-      console.error('Blad wyboru zdjecia:', err);
+      console.error('[DocuLocker] Blad wyboru zdjecia:', err);
       Alert.alert('Blad', 'Nie udalo sie pobrac zdjecia.');
     }
   };
@@ -122,9 +124,17 @@ export default function ScanScreen() {
     setIsProcessingOcr(true);
     const startTime = Date.now();
     try {
+      console.log('[DocuLocker] Rozpoczynam inferencje ML Kit dla:', uri);
       const ocrEngine = new MlKitOcrEngine();
       const scanUseCase = new ScanReceiptUseCase(ocrEngine);
       const parsed = await scanUseCase.execute(uri);
+
+      console.log('[DocuLocker] Wynik parsowania paragonu:', JSON.stringify({
+        suggestedTitle: parsed.suggestedTitle,
+        storeName: parsed.storeName,
+        totalAmount: parsed.totalAmount,
+        purchaseDate: parsed.purchaseDate,
+      }));
 
       setOcrProcessingTime(Date.now() - startTime);
       setOcrRawText(parsed.rawText);
@@ -152,7 +162,7 @@ export default function ScanScreen() {
         hasStore: !!parsed.storeName,
       });
     } catch (err) {
-      console.warn('Blad inferencji OCR:', err);
+      console.error('[DocuLocker] Blad inferencji OCR:', err);
     } finally {
       setIsProcessingOcr(false);
     }
