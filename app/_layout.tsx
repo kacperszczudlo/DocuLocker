@@ -4,6 +4,10 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { getDatabase } from '@/database/connection';
 
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -11,11 +15,13 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        await getDatabase();
+        const db = await getDatabase();
         setIsReady(true);
+        await SplashScreen.hideAsync();
       } catch (err) {
-        console.error('Blad inicjalizacji bazy danych:', err);
+        console.error('[DocuLocker] Blad inicjalizacji bazy danych:', err);
         setInitError(err instanceof Error ? err.message : 'Nieznany blad');
+        await SplashScreen.hideAsync();
       }
     }
     prepare();

@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'expo-sqlite': path.resolve(__dirname, './tests/mocks/expoSqliteMock.ts'),
     },
   },
 });

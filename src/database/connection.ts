@@ -1,3 +1,4 @@
+import * as SQLite from 'expo-sqlite';
 import { BASE_DDL_STATEMENTS, FTS_DDL_STATEMENTS, SEED_STATEMENTS } from './schema';
 
 export interface SqlRunResult {
@@ -58,8 +59,6 @@ export async function getDatabase(): Promise<SqlDatabase> {
     return activeDbInstance;
   }
 
-  // W srodowisku Expo importujemy natywny expo-sqlite
-  const SQLite = await import('expo-sqlite');
   const dbName = process.env.EXPO_PUBLIC_DATABASE_NAME || 'doculocker_local.db';
   const nativeDb = await SQLite.openDatabaseAsync(dbName);
 
