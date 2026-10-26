@@ -1,3 +1,4 @@
+import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { OcrRecognitionResult, OcrTextBlock } from '@/core/parsers/types';
 
 export interface IOcrEngine {
@@ -9,8 +10,6 @@ export class MlKitOcrEngine implements IOcrEngine {
     const startTime = Date.now();
 
     try {
-      // Dynamiczny import natywnego modulu Google ML Kit
-      const TextRecognition = (await import('@react-native-ml-kit/text-recognition')).default;
       const result = await TextRecognition.recognize(imageUri);
 
       const blocks: OcrTextBlock[] = (result.blocks || []).map((block) => ({
@@ -24,8 +23,7 @@ export class MlKitOcrEngine implements IOcrEngine {
         processingTimeMs: Date.now() - startTime,
       };
     } catch (err: unknown) {
-      // W srodowisku bez dostepu do sprzetowego aparatu/NPU (np. symulator, testy)
-      console.warn('MlKit native module unavailable, returning empty OCR result:', err);
+      console.error('[DocuLocker] Blad rozpoznawania tekstu ML Kit:', err);
       return {
         fullText: '',
         blocks: [],

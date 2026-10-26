@@ -192,4 +192,30 @@ describe('HeuristicReceiptParser - Store and Tax ID Extraction', () => {
     expect(result.storeName).toBeNull();
     expect(result.suggestedTitle).toBe('Paragon 12.00 PLN (2026-10-20)');
   });
+
+  it('detects Action store brand with standalone ACTION header', () => {
+    const ocr = createMockOcrResult([
+      'ACTION',
+      'ACTION POLSKA SP. Z O.O.',
+      'UL. ROZDZIENSKIEGO 12',
+      'NIP 676-24-91-827',
+      'BATERIE AA 14.99',
+      'SUMA PLN 14,99',
+    ]);
+
+    const result = HeuristicReceiptParser.parse(ocr);
+    expect(result.storeName).toBe('Action');
+    expect(result.detectedTaxId).toBe('6762491827');
+  });
+
+  it('extracts date in 2-digit year format DD-MM-YY', () => {
+    const ocr = createMockOcrResult([
+      'ACTION',
+      'DATA 23-10-26 18:25',
+      'SUMA PLN 29,99',
+    ]);
+
+    const result = HeuristicReceiptParser.parse(ocr);
+    expect(result.purchaseDate?.isoDate).toBe('2026-10-23');
+  });
 });

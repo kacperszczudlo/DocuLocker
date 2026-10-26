@@ -50,6 +50,16 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="scan"
+          options={{
+            headerShown: true,
+            title: 'Dodaj paragon',
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTintColor: '#F8FAFC',
+            presentation: 'modal',
+          }}
+        />
       </Stack>
     </>
   );

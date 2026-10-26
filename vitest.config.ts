@@ -15,6 +15,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       'expo-sqlite': path.resolve(__dirname, './tests/mocks/expoSqliteMock.ts'),
+      'expo-file-system/legacy': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
+      'expo-file-system': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
+      '@react-native-ml-kit/text-recognition': path.resolve(__dirname, './tests/mocks/mlKitMock.ts'),
     },
   },
 });
