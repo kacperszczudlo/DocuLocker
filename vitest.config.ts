@@ -18,6 +18,8 @@ export default defineConfig({
       'expo-file-system/legacy': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
       'expo-file-system': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
       'expo-notifications': path.resolve(__dirname, './tests/mocks/expoNotificationsMock.ts'),
+      'expo-print': path.resolve(__dirname, './tests/mocks/expoPrintMock.ts'),
+      'expo-sharing': path.resolve(__dirname, './tests/mocks/expoSharingMock.ts'),
       '@react-native-ml-kit/text-recognition': path.resolve(__dirname, './tests/mocks/mlKitMock.ts'),
     },
   },
