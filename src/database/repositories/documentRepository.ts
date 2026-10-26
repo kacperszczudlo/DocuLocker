@@ -84,6 +84,26 @@ export class DocumentRepository {
     return params.id;
   }
 
+  async getDocumentById(id: string): Promise<DocumentWithDetails | null> {
+    const sql = `
+      SELECT 
+        d.id, d.title, d.store_id, d.category_id, d.total_amount, d.currency,
+        d.purchase_date, d.document_type, d.notes, d.raw_ocr_text, d.is_favorite,
+        d.created_at, d.updated_at,
+        s.name as store_name,
+        c.name as category_name, c.icon as category_icon, c.color_hex as category_color,
+        w.end_date as warranty_end_date, w.status as warranty_status, w.return_deadline,
+        a.file_path as primary_image_path
+      FROM documents d
+      LEFT JOIN stores s ON d.store_id = s.id
+      LEFT JOIN categories c ON d.category_id = c.id
+      LEFT JOIN warranties w ON d.id = w.document_id
+      LEFT JOIN document_attachments a ON d.id = a.document_id AND a.is_primary = 1
+      WHERE d.id = ?;
+    `;
+    return this.db.getFirstAsync<DocumentWithDetails>(sql, [id]);
+  }
+
   async listDocuments(categoryId?: number): Promise<DocumentWithDetails[]> {
     let sql = `
       SELECT 
@@ -111,15 +131,14 @@ export class DocumentRepository {
     return this.db.getAllAsync<DocumentWithDetails>(sql, params);
   }
 
-  async searchFullText(query: string): Promise<DocumentWithDetails[]> {
-    // Wyszukiwanie przez modul FTS5
+  async searchFullText(query: string, categoryId?: number): Promise<DocumentWithDetails[]> {
     const cleanQuery = query.trim().replace(/['"*]/g, '');
     if (!cleanQuery) {
-      return this.listDocuments();
+      return this.listDocuments(categoryId);
     }
 
     try {
-      const sql = `
+      let sql = `
         SELECT 
           d.id, d.title, d.store_id, d.category_id, d.total_amount, d.currency,
           d.purchase_date, d.document_type, d.notes, d.raw_ocr_text, d.is_favorite,
@@ -135,12 +154,19 @@ export class DocumentRepository {
         LEFT JOIN warranties w ON d.id = w.document_id
         LEFT JOIN document_attachments a ON d.id = a.document_id AND a.is_primary = 1
         WHERE documents_fts MATCH ?
-        ORDER BY rank;
       `;
-      return await this.db.getAllAsync<DocumentWithDetails>(sql, [cleanQuery + '*']);
+      const params: unknown[] = [cleanQuery + '*'];
+
+      if (categoryId) {
+        sql += ' AND d.category_id = ?';
+        params.push(categoryId);
+      }
+
+      sql += ' ORDER BY rank;';
+      return await this.db.getAllAsync<DocumentWithDetails>(sql, params);
     } catch {
-      // Fallback: standardowe wyszukiwanie LIKE jesli srodowisko SQLite nie posiada FTS5
-      const fallbackSql = `
+      // Fallback: standardowe wyszukiwanie LIKE jesli srodowisko SQLite nie posiada aktywnego FTS5
+      let fallbackSql = `
         SELECT 
           d.id, d.title, d.store_id, d.category_id, d.total_amount, d.currency,
           d.purchase_date, d.document_type, d.notes, d.raw_ocr_text, d.is_favorite,
@@ -154,11 +180,18 @@ export class DocumentRepository {
         LEFT JOIN categories c ON d.category_id = c.id
         LEFT JOIN warranties w ON d.id = w.document_id
         LEFT JOIN document_attachments a ON d.id = a.document_id AND a.is_primary = 1
-        WHERE d.title LIKE ? OR d.notes LIKE ? OR d.raw_ocr_text LIKE ?
-        ORDER BY d.purchase_date DESC;
+        WHERE (d.title LIKE ? OR d.notes LIKE ? OR d.raw_ocr_text LIKE ? OR s.name LIKE ?)
       `;
       const likeParam = `%${cleanQuery}%`;
-      return await this.db.getAllAsync<DocumentWithDetails>(fallbackSql, [likeParam, likeParam, likeParam]);
+      const fallbackParams: unknown[] = [likeParam, likeParam, likeParam, likeParam];
+
+      if (categoryId) {
+        fallbackSql += ' AND d.category_id = ?';
+        fallbackParams.push(categoryId);
+      }
+
+      fallbackSql += ' ORDER BY d.purchase_date DESC;';
+      return await this.db.getAllAsync<DocumentWithDetails>(fallbackSql, fallbackParams);
     }
   }
 
