@@ -1,6 +1,8 @@
 import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { StoreRepository } from '@/database/repositories/storeRepository';
 import { FileStorageService } from '@/services/storage/fileStorageService';
+import { NotificationService } from '@/services/notifications/notificationService';
+import { WarrantyCalculator } from '@/core/warranties/warrantyCalculator';
 import { DocumentType } from '@/database/types';
 
 export interface SaveDocumentInput {
@@ -34,7 +36,8 @@ export class SaveDocumentUseCase {
   constructor(
     private readonly documentRepo: DocumentRepository,
     private readonly storeRepo: StoreRepository,
-    private readonly storageService: FileStorageService
+    private readonly storageService: FileStorageService,
+    private readonly notificationService?: NotificationService
   ) {}
 
   async execute(input: SaveDocumentInput): Promise<string> {
@@ -51,6 +54,9 @@ export class SaveDocumentUseCase {
       storeId = store.id;
     }
 
+    const warrantyMonths = input.warrantyMonths ?? 24;
+    const returnWindowDays = input.returnWindowDays ?? 14;
+
     await this.documentRepo.createDocument({
       id: docId,
       title: input.title.trim(),
@@ -62,10 +68,27 @@ export class SaveDocumentUseCase {
       documentType: input.documentType ?? 'RECEIPT',
       notes: input.notes ?? null,
       rawOcrText: input.rawOcrText ?? null,
-      warrantyMonths: input.warrantyMonths ?? 24,
-      returnWindowDays: input.returnWindowDays ?? 14,
+      warrantyMonths,
+      returnWindowDays,
       primaryImagePath: persistentImagePath,
     });
+
+    // Automatyczne planowanie lokalnych przypomnien o koncu gwarancji i zwrotu
+    if (this.notificationService) {
+      const calculation = WarrantyCalculator.calculate({
+        purchaseDate: input.purchaseDate,
+        durationMonths: warrantyMonths,
+        returnWindowDays,
+      });
+
+      await this.notificationService.scheduleWarrantyAlerts({
+        documentId: docId,
+        title: input.title.trim(),
+        warrantyEndDate: calculation.endDate,
+        returnDeadline: calculation.returnDeadline,
+        storeName: input.storeName,
+      });
+    }
 
     return docId;
   }

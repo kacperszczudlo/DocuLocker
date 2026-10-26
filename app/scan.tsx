@@ -22,6 +22,7 @@ import { FileStorageService } from '@/services/storage/fileStorageService';
 import { MlKitOcrEngine } from '@/services/ocr/ocrEngine';
 import { ScanReceiptUseCase } from '@/core/useCases/scanReceiptUseCase';
 import { SaveDocumentUseCase } from '@/core/useCases/saveDocumentUseCase';
+import { NotificationService } from '@/services/notifications/notificationService';
 import { CategoryRow } from '@/database/types';
 
 const WARRANTY_OPTIONS = [
@@ -192,7 +193,8 @@ export default function ScanScreen() {
       const docRepo = new DocumentRepository(db);
       const storeRepo = new StoreRepository(db);
       const storageService = new FileStorageService();
-      const saveUseCase = new SaveDocumentUseCase(docRepo, storeRepo, storageService);
+      const notifService = new NotificationService();
+      const saveUseCase = new SaveDocumentUseCase(docRepo, storeRepo, storageService, notifService);
 
       await saveUseCase.execute({
         title: trimmedTitle,
