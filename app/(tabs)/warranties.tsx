@@ -14,6 +14,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { getDatabase } from '@/database/connection';
 import { WarrantyRepository, WarrantyItemWithDetails, WarrantyStats } from '@/database/repositories/warrantyRepository';
 import { WarrantyStatus } from '@/database/types';
+import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
 type FilterTab = 'ALL' | WarrantyStatus;
 
@@ -143,7 +144,7 @@ export default function WarrantiesScreen() {
               <Text style={styles.categoryBadge}>{item.category_name}</Text>
             )}
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: `${calc.badgeColor}22`, borderColor: calc.badgeColor }]}>
+          <View style={[styles.statusBadge, { backgroundColor: `${calc.badgeColor}20`, borderColor: calc.badgeColor }]}>
             <Text style={[styles.statusBadgeText, { color: calc.badgeColor }]}>
               {calc.badgeLabel}
             </Text>
@@ -173,13 +174,13 @@ export default function WarrantiesScreen() {
               ]}
             />
           </View>
-          <Text style={styles.progressText}>{calc.progressPercentage}% czasu uplynelo</Text>
+          <Text style={styles.progressText}>{calc.progressPercentage}% czasu upłynęło</Text>
         </View>
 
         {/* Sekcja szczegolow terminow */}
         <View style={styles.datesGrid}>
           <View style={styles.dateCol}>
-            <Text style={styles.dateLabel}>Zakup</Text>
+            <Text style={styles.dateLabel}>Data Zakupu</Text>
             <Text style={styles.dateValue}>{item.purchase_date}</Text>
           </View>
           <View style={styles.dateCol}>
@@ -194,7 +195,7 @@ export default function WarrantiesScreen() {
         <View style={styles.returnRow}>
           <Text style={styles.returnIcon}>🔄</Text>
           <Text style={styles.returnText}>
-            Zwrot towaru: {item.return_deadline}{' '}
+            Prawo zwrotu do {item.return_deadline}{' '}
             {calc.returnStatus === 'CAN_RETURN' ? (
               <Text style={styles.returnActiveText}>(jeszcze {calc.returnDaysRemaining} dni)</Text>
             ) : (
@@ -203,20 +204,27 @@ export default function WarrantiesScreen() {
           </Text>
         </View>
 
-        {/* Notatka reklamacyjna jesli istnieje */}
+        {/* Notatka reklamacyjna z pelnym tlem i ikona (zgodnie z impeccable - no side-stripe) */}
         {item.claim_notes && (
           <View style={styles.claimNoteBox}>
-            <Text style={styles.claimNoteLabel}>Notatka reklamacyjna:</Text>
+            <View style={styles.claimNoteHeader}>
+              <Text style={styles.claimNoteIcon}>📋</Text>
+              <Text style={styles.claimNoteLabel}>Notatka reklamacyjna / serwis:</Text>
+            </View>
             <Text style={styles.claimNoteText}>{item.claim_notes}</Text>
           </View>
         )}
 
-        {/* Przyciski akcji na karcie */}
+        {/* Przyciski akcji na karcie - minHeight 44dp */}
         <View style={styles.actionsRow}>
           {item.status === 'CLAIMED' ? (
             <TouchableOpacity
               style={styles.restoreBtn}
               onPress={() => handleRestoreStatus(item)}
+              activeOpacity={touchTargets.activeOpacity}
+              accessibilityRole="button"
+              accessibilityLabel="Zakończ proces reklamacji"
+              hitSlop={touchTargets.minHitSlop}
             >
               <Text style={styles.restoreBtnText}>Zakończ reklamację</Text>
             </TouchableOpacity>
@@ -224,6 +232,10 @@ export default function WarrantiesScreen() {
             <TouchableOpacity
               style={styles.claimBtn}
               onPress={() => handleOpenClaimModal(item)}
+              activeOpacity={touchTargets.activeOpacity}
+              accessibilityRole="button"
+              accessibilityLabel="Zgłoś usterkę lub reklamację"
+              hitSlop={touchTargets.minHitSlop}
             >
               <Text style={styles.claimBtnText}>Zgłoś reklamację / serwis</Text>
             </TouchableOpacity>
@@ -248,12 +260,20 @@ export default function WarrantiesScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Szukaj produktu lub sklepu..."
-          placeholderTextColor="#64748B"
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          accessibilityRole="search"
+          accessibilityLabel="Szukaj w gwarancjach"
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchBtn}>
+          <TouchableOpacity
+            onPress={() => setSearchQuery('')}
+            style={styles.clearSearchBtn}
+            hitSlop={touchTargets.minHitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Wyczyść pole wyszukiwania"
+          >
             <Text style={styles.clearSearchText}>✕</Text>
           </TouchableOpacity>
         )}
@@ -274,6 +294,11 @@ export default function WarrantiesScreen() {
               <TouchableOpacity
                 style={[styles.filterChip, isSelected && styles.filterChipSelected]}
                 onPress={() => setSelectedFilter(item.key)}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel={`Filtr ${item.label}, ${count} pozycji`}
+                accessibilityState={{ selected: isSelected }}
+                hitSlop={touchTargets.minHitSlop}
               >
                 <Text style={[styles.filterChipText, isSelected && styles.filterChipTextSelected]}>
                   {item.label}
@@ -296,7 +321,7 @@ export default function WarrantiesScreen() {
         renderItem={renderWarrantyCard}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#38BDF8" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primaryLight} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -304,12 +329,15 @@ export default function WarrantiesScreen() {
             <Text style={styles.emptyTitle}>Brak pozycji na liście</Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery
-                ? 'Brak paragonów spełniających kryteria wyszukiwania.'
-                : 'Dodaj swój pierwszy paragon ze skanera, aby monitorować termin gwarancji.'}
+                ? 'Brak paragonów spełniających wybrane kryteria wyszukiwania.'
+                : 'Zeskanuj paragon ze sklepu, aby automatycznie monitorować termin upływu rękojmi.'}
             </Text>
             <TouchableOpacity
               style={styles.scanActionBtn}
               onPress={() => router.push('/scan')}
+              activeOpacity={touchTargets.activeOpacity}
+              accessibilityRole="button"
+              accessibilityLabel="Zeskanuj paragon"
             >
               <Text style={styles.scanActionBtnText}>+ Zeskanuj paragon</Text>
             </TouchableOpacity>
@@ -329,12 +357,12 @@ export default function WarrantiesScreen() {
             <Text style={styles.modalTitle}>Zgłoszenie reklamacyjne</Text>
             <Text style={styles.modalProduct}>{selectedItemForClaim?.title}</Text>
             <Text style={styles.modalDesc}>
-              Wpisz notatkę (np. powód awarii, numer zgłoszenia u sprzedawcy lub datę oddania do serwisu):
+              Wpisz notatkę (np. powód usterki, numer RMA ze sklepu lub datę przekazania do serwisu):
             </Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="np. Hałasujące łożysko, zgłoszenie #10492"
-              placeholderTextColor="#64748B"
+              placeholder="np. Hałasujące łożysko, zgłoszenie serwisowe #10492"
+              placeholderTextColor={colors.textMuted}
               value={claimNotes}
               onChangeText={setClaimNotes}
               multiline
@@ -344,10 +372,19 @@ export default function WarrantiesScreen() {
               <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setClaimModalVisible(false)}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel="Anuluj"
               >
                 <Text style={styles.modalCancelText}>Anuluj</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalConfirmBtn} onPress={handleSaveClaim}>
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={handleSaveClaim}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel="Zapisz status reklamacji"
+              >
                 <Text style={styles.modalConfirmText}>Zapisz status</Text>
               </TouchableOpacity>
             </View>
@@ -361,90 +398,94 @@ export default function WarrantiesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   headerTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: '800',
   },
   headerSubtitle: {
-    color: '#94A3B8',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
     marginTop: 2,
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 10,
-    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    minHeight: 46,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    color: '#F8FAFC',
+    height: 44,
+    color: colors.textPrimary,
     fontSize: 14,
   },
   clearSearchBtn: {
-    padding: 6,
+    padding: spacing.sm,
   },
   clearSearchText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: 'bold',
   },
   filtersContainer: {
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   filtersList: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    minHeight: 38,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
     gap: 6,
   },
   filterChipSelected: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
   },
   filterChipText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   filterChipTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '700',
   },
   filterBadge: {
-    backgroundColor: '#334155',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 10,
+    backgroundColor: colors.surfaceElevated,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radii.sm,
   },
   filterBadgeSelected: {
-    backgroundColor: '#0369A1',
+    backgroundColor: colors.primaryDark,
   },
   filterBadgeText: {
-    color: '#CBD5E1',
+    color: colors.textPrimary,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -452,48 +493,47 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xl,
   },
   card: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   storeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   storeName: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 13,
     fontWeight: '700',
   },
   categoryBadge: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 11,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
-    overflow: 'hidden',
+    borderRadius: radii.xs,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
     borderWidth: 1,
   },
   statusBadgeText: {
@@ -504,26 +544,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   documentTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '600',
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.md,
+    lineHeight: 20,
   },
   amountText: {
-    color: '#F1F5F9',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
+    color: colors.primaryLight,
   },
   progressContainer: {
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 4,
@@ -533,131 +574,147 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     textAlign: 'right',
   },
   datesGrid: {
     flexDirection: 'row',
-    backgroundColor: '#0F172A',
-    borderRadius: 6,
-    padding: 8,
-    marginBottom: 8,
+    backgroundColor: colors.background,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
   },
   dateCol: {
     flex: 1,
   },
   dateLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 10,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
   dateValue: {
-    color: '#E2E8F0',
+    color: colors.textPrimary,
     fontSize: 12,
   },
   returnRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   returnIcon: {
     fontSize: 12,
   },
   returnText: {
-    color: '#94A3B8',
-    fontSize: 11,
+    color: colors.textSecondary,
+    fontSize: 12,
   },
   returnActiveText: {
-    color: '#10B981',
+    color: colors.success,
     fontWeight: '600',
   },
   returnExpiredText: {
-    color: '#64748B',
+    color: colors.textMuted,
   },
   claimNoteBox: {
-    backgroundColor: '#1E1B4B',
-    borderLeftWidth: 3,
-    borderLeftColor: '#3B82F6',
-    padding: 8,
-    borderRadius: 4,
-    marginBottom: 10,
+    backgroundColor: colors.claimedSubtle,
+    borderWidth: 1,
+    borderColor: colors.claimed,
+    padding: spacing.sm,
+    borderRadius: radii.sm,
+    marginBottom: spacing.sm,
   },
-  claimNoteLabel: {
-    color: '#93C5FD',
-    fontSize: 11,
-    fontWeight: '600',
+  claimNoteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 2,
   },
-  claimNoteText: {
-    color: '#E0E7FF',
+  claimNoteIcon: {
     fontSize: 12,
+  },
+  claimNoteLabel: {
+    color: colors.primaryLight,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  claimNoteText: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
   },
   actionsRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
-    paddingTop: 8,
-    marginTop: 2,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   claimBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    backgroundColor: '#0F172A',
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#3B82F6',
+    borderColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   claimBtnText: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   restoreBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    backgroundColor: '#0F172A',
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   restoreBtnText: {
-    color: '#34D399',
+    color: colors.success,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   emptyIcon: {
     fontSize: 48,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   emptyTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 17,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   emptySubtitle: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
+    lineHeight: 19,
+    marginBottom: spacing.lg,
   },
   scanActionBtn: {
-    backgroundColor: '#0284C7',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    minHeight: touchTargets.minHeight,
+    paddingHorizontal: spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.md,
   },
   scanActionBtnText: {
     color: '#FFFFFF',
@@ -666,68 +723,72 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
-    padding: 20,
+    padding: spacing.md,
   },
   modalContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   modalTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   modalProduct: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   modalDesc: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 12,
-    marginBottom: 12,
-    lineHeight: 16,
+    marginBottom: spacing.md,
+    lineHeight: 17,
   },
   modalInput: {
-    backgroundColor: '#0F172A',
-    color: '#F8FAFC',
-    borderRadius: 8,
-    padding: 12,
-    height: 90,
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    borderRadius: radii.sm,
+    padding: spacing.md,
+    height: 96,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#334155',
-    marginBottom: 16,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
     fontSize: 13,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: spacing.md,
   },
   modalCancelBtn: {
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    backgroundColor: '#0F172A',
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
   },
   modalCancelText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '600',
   },
   modalConfirmBtn: {
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    backgroundColor: '#0284C7',
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.sm,
+    backgroundColor: colors.primary,
   },
   modalConfirmText: {
     color: '#FFFFFF',

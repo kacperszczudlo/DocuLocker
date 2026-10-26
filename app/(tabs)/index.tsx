@@ -5,6 +5,7 @@ import { getDatabase } from '@/database/connection';
 import { CategoryRepository } from '@/database/repositories/categoryRepository';
 import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { CategoryRow, DocumentWithDetails } from '@/database/types';
+import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function DashboardScreen() {
       setCategories(cats);
       setDocuments(docs);
     } catch (err) {
-      console.error('Blad ladowania danych dashboardu:', err);
+      console.error('[DocuLocker] Blad ladowania danych dashboardu:', err);
     }
   }, [selectedCategory]);
 
@@ -38,16 +39,25 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Karta Statystyk Bazy */}
       <View style={styles.statsCard}>
-        <View>
+        <View style={styles.statsInfo}>
           <Text style={styles.statsLabel}>Lokalna baza SQLite (Offline)</Text>
-          <Text style={styles.statsValue}>{documents.length} dokumentow w sejfie</Text>
+          <Text style={styles.statsValue}>{documents.length} dokumentów w sejfie</Text>
         </View>
-        <TouchableOpacity style={styles.quickAddBtn} onPress={() => router.push('/scan')}>
+        <TouchableOpacity
+          style={styles.quickAddBtn}
+          onPress={() => router.push('/scan')}
+          activeOpacity={touchTargets.activeOpacity}
+          accessibilityRole="button"
+          accessibilityLabel="Szybkie skanowanie paragonu"
+          hitSlop={touchTargets.minHitSlop}
+        >
           <Text style={styles.quickAddBtnText}>+ Skanuj</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Wybór kategorii */}
       <Text style={styles.sectionTitle}>Kategorie</Text>
       <View style={styles.categoriesContainer}>
         <FlatList
@@ -62,6 +72,11 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
                 onPress={() => setSelectedCategory(isSelected ? undefined : item.id)}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel={`Kategoria ${item.name}`}
+                accessibilityState={{ selected: isSelected }}
+                hitSlop={touchTargets.minHitSlop}
               >
                 <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>
                   {item.name}
@@ -72,14 +87,22 @@ export default function DashboardScreen() {
         />
       </View>
 
+      {/* Lista dokumentów */}
       <Text style={styles.sectionTitle}>Ostatnie dokumenty</Text>
       {documents.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Brak zapisanych paragonow.</Text>
+          <Text style={styles.emptyIcon}>📦</Text>
+          <Text style={styles.emptyText}>Brak zapisanych paragonów</Text>
           <Text style={styles.emptySubtext}>
-            Zrob zdjecie paragonu aparatem lub wybierz z galerii, a sztuczna inteligencja ML Kit odczyta dane.
+            Zrób zdjęcie paragonu aparatem lub wybierz z galerii, a sztuczna inteligencja ML Kit natychmiast odczyta dane bez wysyłania do chmury.
           </Text>
-          <TouchableOpacity style={styles.emptyActionBtn} onPress={() => router.push('/scan')}>
+          <TouchableOpacity
+            style={styles.emptyActionBtn}
+            onPress={() => router.push('/scan')}
+            activeOpacity={touchTargets.activeOpacity}
+            accessibilityRole="button"
+            accessibilityLabel="Zeskanuj pierwszy paragon"
+          >
             <Text style={styles.emptyActionBtnText}>Zeskanuj pierwszy paragon</Text>
           </TouchableOpacity>
         </View>
@@ -87,16 +110,17 @@ export default function DashboardScreen() {
         <FlatList
           data={documents}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.documentsList}
           renderItem={({ item }) => (
             <View style={styles.documentCard}>
               <View style={styles.docLeft}>
-                <Text style={styles.docTitle}>{item.title}</Text>
+                <Text style={styles.docTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.docMeta}>
                   {item.purchase_date} {item.store_name ? `• ${item.store_name}` : ''}
                 </Text>
                 {item.warranty_end_date && (
                   <Text style={styles.docWarranty}>
-                    Gwarancja do: {item.warranty_end_date}
+                    🛡️ Gwarancja do: {item.warranty_end_date}
                   </Text>
                 )}
               </View>
@@ -108,11 +132,13 @@ export default function DashboardScreen() {
         />
       )}
 
-      {/* Floating Action Button */}
+      {/* Pływający przycisk akcji (FAB) - min 48x48dp */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/scan')}
-        activeOpacity={0.85}
+        activeOpacity={touchTargets.activeOpacity}
+        accessibilityRole="button"
+        accessibilityLabel="Zeskanuj paragon"
       >
         <Text style={styles.fabText}>+ Skanuj paragon</Text>
       </TouchableOpacity>
@@ -123,158 +149,183 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
-    padding: 16,
+    backgroundColor: colors.background,
+    padding: spacing.md,
   },
   statsCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  statsInfo: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
   statsLabel: {
-    color: '#94A3B8',
-    fontSize: 12,
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   statsValue: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 4,
+    fontWeight: '800',
+    marginTop: spacing.xs,
   },
   quickAddBtn: {
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.sm,
   },
   quickAddBtnText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 13,
   },
   sectionTitle: {
-    color: '#CBD5E1',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 10,
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
   },
   categoriesContainer: {
-    maxHeight: 46,
-    marginBottom: 16,
+    maxHeight: 48,
+    marginBottom: spacing.md,
   },
   categoriesList: {
-    gap: 8,
+    gap: spacing.sm,
   },
   categoryChip: {
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   categoryChipSelected: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
   },
   categoryText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 13,
+    fontWeight: '600',
   },
   categoryTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  documentsList: {
+    paddingBottom: 80,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: spacing.md,
   },
   emptyText: {
-    color: '#E2E8F0',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '700',
   },
   emptySubtext: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
-    marginTop: 8,
+    marginTop: spacing.sm,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 19,
   },
   emptyActionBtn: {
-    backgroundColor: '#0284C7',
-    marginTop: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    marginTop: spacing.lg,
+    minHeight: touchTargets.minHeight,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: radii.md,
   },
   emptyActionBtnText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 14,
   },
   documentCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 8,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   docLeft: {
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   docTitle: {
-    color: '#F1F5F9',
+    color: colors.textPrimary,
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   docMeta: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
-    marginTop: 2,
+    marginTop: spacing.xs,
   },
   docWarranty: {
-    color: '#34D399',
+    color: colors.success,
     fontSize: 11,
-    marginTop: 4,
-    fontWeight: '500',
+    marginTop: spacing.xs,
+    fontWeight: '600',
   },
   docAmount: {
-    color: '#38BDF8',
     fontSize: 16,
     fontWeight: '700',
+    color: colors.primaryLight,
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 30,
+    bottom: spacing.lg,
+    right: spacing.lg,
+    backgroundColor: colors.primary,
+    minHeight: 52,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 6,
     elevation: 8,
   },
   fabText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 15,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

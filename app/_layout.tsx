@@ -3,8 +3,8 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { getDatabase } from '@/database/connection';
-
 import * as SplashScreen from 'expo-splash-screen';
+import { colors, spacing, typography } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -15,7 +15,7 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        const db = await getDatabase();
+        await getDatabase();
         setIsReady(true);
         await SplashScreen.hideAsync();
       } catch (err) {
@@ -30,7 +30,7 @@ export default function RootLayout() {
   if (initError) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Blad startu aplikacji</Text>
+        <Text style={styles.errorTitle}>Błąd startu aplikacji</Text>
         <Text style={styles.errorMessage}>{initError}</Text>
       </View>
     );
@@ -39,8 +39,8 @@ export default function RootLayout() {
   if (!isReady) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text style={styles.loadingText}>Ladowanie bazy danych DocuLocker...</Text>
+        <ActivityIndicator size="large" color={colors.primaryLight} />
+        <Text style={styles.loadingText}>Ładowanie bazy danych DocuLocker...</Text>
       </View>
     );
   }
@@ -55,8 +55,8 @@ export default function RootLayout() {
           options={{
             headerShown: true,
             title: 'Dodaj paragon',
-            headerStyle: { backgroundColor: '#0F172A' },
-            headerTintColor: '#F8FAFC',
+            headerStyle: { backgroundColor: colors.background },
+            headerTintColor: colors.textPrimary,
             presentation: 'modal',
           }}
         />
@@ -68,25 +68,26 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   centerContainer: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: spacing.lg,
   },
   loadingText: {
-    color: '#94A3B8',
-    marginTop: 16,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
     fontSize: 14,
   },
   errorTitle: {
-    color: '#EF4444',
+    color: colors.danger,
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   errorMessage: {
-    color: '#CBD5E1',
+    color: colors.textSecondary,
     textAlign: 'center',
     fontSize: 14,
+    lineHeight: 20,
   },
 });

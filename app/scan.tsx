@@ -24,6 +24,7 @@ import { ScanReceiptUseCase } from '@/core/useCases/scanReceiptUseCase';
 import { SaveDocumentUseCase } from '@/core/useCases/saveDocumentUseCase';
 import { NotificationService } from '@/services/notifications/notificationService';
 import { CategoryRow } from '@/database/types';
+import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
 const WARRANTY_OPTIONS = [
   { label: 'Brak', months: 0 },
@@ -304,7 +305,7 @@ export default function ScanScreen() {
           <TextInput
             style={styles.input}
             placeholder="np. Biedronka - Zakupy"
-            placeholderTextColor="#64748B"
+            placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
           />
@@ -316,7 +317,7 @@ export default function ScanScreen() {
             <TextInput
               style={styles.input}
               placeholder="0.00"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.textMuted}
               keyboardType="decimal-pad"
               value={totalAmount}
               onChangeText={setTotalAmount}
@@ -327,7 +328,7 @@ export default function ScanScreen() {
             <TextInput
               style={styles.input}
               placeholder="PLN"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.textMuted}
               value={currency}
               onChangeText={setCurrency}
             />
@@ -340,7 +341,7 @@ export default function ScanScreen() {
             <TextInput
               style={styles.input}
               placeholder="2026-10-23"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.textMuted}
               value={purchaseDate}
               onChangeText={setPurchaseDate}
             />
@@ -353,7 +354,7 @@ export default function ScanScreen() {
             <TextInput
               style={styles.input}
               placeholder="np. MediaMarkt, Lidl"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.textMuted}
               value={storeName}
               onChangeText={setStoreName}
             />
@@ -363,7 +364,7 @@ export default function ScanScreen() {
             <TextInput
               style={styles.input}
               placeholder="np. 5270008098"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.textMuted}
               keyboardType="number-pad"
               value={taxId}
               onChangeText={setTaxId}
@@ -415,7 +416,7 @@ export default function ScanScreen() {
           <TextInput
             style={styles.input}
             placeholder="14"
-            placeholderTextColor="#64748B"
+            placeholderTextColor={colors.textMuted}
             keyboardType="number-pad"
             value={returnDays}
             onChangeText={setReturnDays}
@@ -428,7 +429,7 @@ export default function ScanScreen() {
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Dodatkowe uwagi, numer paragonu..."
-            placeholderTextColor="#64748B"
+            placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={3}
             value={notes}
@@ -675,9 +676,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    minHeight: 52,
+    borderRadius: radii.md,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
   },
