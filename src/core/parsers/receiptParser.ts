@@ -5,6 +5,10 @@ interface StoreDefinition {
   readonly matchRegex: RegExp;
 }
 
+/**
+ * Predefiniowana lista sieci handlowych i marek powszechnie operujacych na rynku polskim.
+ * Wykorzystywana do bezposredniego dopasowywania logotypow i naglowkow fiskalnych.
+ */
 const KNOWN_STORES: readonly StoreDefinition[] = [
   { name: 'Biedronka', matchRegex: /\b(biedronka|jeronimo\s+martins)\b/i },
   { name: 'Lidl', matchRegex: /\b(lidl)\b/i },
@@ -32,7 +36,19 @@ const KNOWN_STORES: readonly StoreDefinition[] = [
   { name: 'CCC', matchRegex: /\b(ccc)\b/i },
 ];
 
+/**
+ * Heurystyczny analizator paragonow fiskalnych (HeuristicReceiptParser).
+ *
+ * Ekstrahuje kluczowe dane biznesowe z surowego tekstu OCR bez uzycia chmury
+ * ani zewnetrznych modeli jezykowych (pelna prywatnosc Zero-Data na urzadzeniu).
+ */
 export class HeuristicReceiptParser {
+  /**
+   * Glowna metoda parsujaca surowy wynik OCR w ustrukturyzowany obiekt paragonu.
+   *
+   * @param ocrResult Wynik rozpoznawania tekstu zwrocony przez silnik OCR.
+   * @returns Ustrukturyzowane dane paragonu wraz z sugerowanym tytulem.
+   */
   static parse(ocrResult: OcrRecognitionResult): ParsedReceiptData {
     const rawText = ocrResult.fullText;
     const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -53,8 +69,13 @@ export class HeuristicReceiptParser {
     };
   }
 
+  /**
+   * Ekstrahuje nazwe sklepu lub marki, przeszukujac pierwsze 10 linii tekstu paragonu.
+   *
+   * @param lines Tablica oczyszczonych linii tekstu OCR.
+   * @returns Rozpoznana nazwa marki lub null, jesli nie dopasowano do bazy wzorcow.
+   */
   static extractStoreName(lines: readonly string[]): string | null {
-    // Sprawdzamy pierwsze 10 linii tekstu (naglowek paragonu)
     const headerLines = lines.slice(0, 10);
     for (const line of headerLines) {
       for (const store of KNOWN_STORES) {
@@ -66,6 +87,13 @@ export class HeuristicReceiptParser {
     return null;
   }
 
+  /**
+   * Ekstrahuje laczna kwote transakcji (sume fiskalna) w oparciu o polskie i miedzynarodowe
+   * slowa kluczowe (np. 'SUMA', 'RAZEM', 'DO ZAPLATY') oraz heurystyki pozycji.
+   *
+   * @param lines Tablica oczyszczonych linii tekstu OCR.
+   * @returns Obiekt kwoty, waluty i wspolczynnika pewnosci lub null, gdy nie znaleziono kwoty.
+   */
   static extractTotalAmount(lines: readonly string[]): ParsedAmount | null {
     const highPriorityKeywords = /\b(suma|razem|total|do\s*zap[lł]aty|zap[lł]acono|do\s*zap[lł]ate)\b/i;
     const mediumPriorityKeywords = /\b(karta|kart[aą]|p[lł]atno[sś][cć]|sprzeda[zż]|got[oó]wka|blik|nale[zż]no[sś][cć]|rozliczenie)\b/i;
@@ -141,11 +169,16 @@ export class HeuristicReceiptParser {
     return bestMatch;
   }
 
+  /**
+   * Ekstrahuje date dokonania transakcji zakupu w formatach ISO (YYYY-MM-DD),
+   * tradycyjnym polskim (DD-MM-YYYY, DD.MM.YYYY) oraz skroconym (DD-MM-YY).
+   *
+   * @param lines Tablica oczyszczonych linii tekstu OCR.
+   * @returns Obiekt daty w znormalizowanym formacie ISO-8601 lub null, gdy nie znaleziono daty.
+   */
   static extractPurchaseDate(lines: readonly string[]): ParsedDate | null {
-    // 1. Formaty z pelnym 4-cyfrowym rokiem: YYYY-MM-DD, DD-MM-YYYY, DD.MM.YYYY, YYYY/MM/DD
     const isoDateRegex = /\b(20\d{2})[-/.](0[1-9]|1[0-2])[-/.](0[1-9]|[12]\d|3[01])\b/;
     const polishDateRegex = /\b(0[1-9]|[12]\d|3[01])[-/.](0[1-9]|1[0-2])[-/.](20\d{2})\b/;
-    // 2. Formaty z 2-cyfrowym rokiem: DD-MM-YY, DD.MM.YY (np. 23-10-26)
     const shortDateRegex = /\b(0[1-9]|[12]\d|3[01])[-/.](0[1-9]|1[0-2])[-/.](2[0-9])\b/;
 
     for (const line of lines) {
@@ -186,6 +219,12 @@ export class HeuristicReceiptParser {
     return null;
   }
 
+  /**
+   * Ekstrahuje 10-cyfrowy Numer Identyfikacji Podatkowej (NIP) sprzedawcy.
+   *
+   * @param lines Tablica oczyszczonych linii tekstu OCR.
+   * @returns 10-cyfrowy NIP pozbawiony separatorow lub null.
+   */
   static extractTaxId(lines: readonly string[]): string | null {
     const nipRegex = /\bnip[:\s]*([\d\s-]{10,16})/i;
     for (const line of lines) {
@@ -200,6 +239,14 @@ export class HeuristicReceiptParser {
     return null;
   }
 
+  /**
+   * Generuje czytelny, sugerowany tytul dokumentu dla uzytkownika.
+   *
+   * @param storeName Rozpoznana nazwa sklepu.
+   * @param amount Rozpoznana kwota transakcji.
+   * @param date Rozpoznana data zakupu.
+   * @returns Tytul ulatwiajacy natychmiastowa identyfikacje w sejfie.
+   */
   static generateSuggestedTitle(
     storeName: string | null,
     amount: ParsedAmount | null,

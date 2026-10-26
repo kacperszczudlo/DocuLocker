@@ -1,3 +1,10 @@
+/**
+ * Schemat relacyjny bazy danych SQLite dla DocuLocker.
+ * Zawiera tabele bazowe, indeksy B-Tree, wirtualna tabele FTS5 z polskim tokenizatorem
+ * oraz seed kategorii i popularnych sieci handlowych.
+ */
+
+/** Bazowe deklaracje tabel DDL oraz indeksow wydajnosciowych. */
 export const BASE_DDL_STATEMENTS = [
   // 1. Tabela kategorii
   `CREATE TABLE IF NOT EXISTS categories (
@@ -85,8 +92,11 @@ export const BASE_DDL_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_attachments_document_id ON document_attachments(document_id);`,
 ];
 
+/**
+ * Deklaracje tabeli wirtualnej FTS5 oraz automatycznych triggerow
+ * synchronizujacych pelnotekstowy indeks z tabela bazowa `documents`.
+ */
 export const FTS_DDL_STATEMENTS = [
-  // Wyszukiwanie pelnotekstowe FTS5
   `CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts USING fts5(
     document_id UNINDEXED,
     title,
@@ -97,7 +107,6 @@ export const FTS_DDL_STATEMENTS = [
     tokenize='unicode61 remove_diacritics 2'
   );`,
 
-  // Triggery synchronizujace FTS5
   `CREATE TRIGGER IF NOT EXISTS documents_ai AFTER INSERT ON documents BEGIN
     INSERT INTO documents_fts(rowid, document_id, title, notes, raw_ocr_text)
     VALUES (new.rowid, new.id, new.title, new.notes, new.raw_ocr_text);
@@ -116,6 +125,7 @@ export const FTS_DDL_STATEMENTS = [
   END;`,
 ];
 
+/** Poczatkowe rekordy slownikowe: kategorie wydatkow i sieci handlowe. */
 export const SEED_STATEMENTS = [
   `INSERT OR IGNORE INTO categories (name, icon, color_hex, is_system) VALUES
     ('Elektronika i RTV', 'smartphone', '#3B82F6', 1),

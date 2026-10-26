@@ -1,6 +1,10 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
+/**
+ * Dane formularza zgloszenia reklamacyjnego z tytulu rekojmi
+ * generowane na podstawie art. 556 i nast. Kodeksu Cywilnego.
+ */
 export interface ComplaintData {
   readonly documentId: string;
   readonly productTitle: string;
@@ -34,6 +38,15 @@ export interface SharingDriver {
   shareAsync(url: string, options?: { mimeType?: string; dialogTitle?: string }): Promise<void>;
 }
 
+/**
+ * Generator dokumentow reklamacyjnych PDF (PdfGenerator).
+ *
+ * Odpowiada za:
+ * - Przygotowanie estetycznego, znormalizowanego szablonu HTML pisma reklamacyjnego.
+ * - Osadzenie skanu lub zdjecia paragonu bezposrednio w tresci dokumentu.
+ * - Konwersje HTML do formatu PDF za pomoca natywnego silnika wydruku Androida.
+ * - Bezposrednie wywolanie arkusza udostepniania w celu wyslania PDF mailem lub komunikatorem.
+ */
 export class PdfGenerator {
   constructor(
     private readonly printDriver: PrintDriver = Print,
@@ -289,7 +302,7 @@ export class PdfGenerator {
   ` : ''}
 
   <div class="footer">
-    Dokument wygenerowany w aplikacji <strong>DocuLocker</strong> — Bezpieczny Sejf Paragonów (Offline-First Edge AI)
+    Dokument wygenerowany w aplikacji <strong>DocuLocker</strong> - Bezpieczny Sejf Paragonów (Offline-First Edge AI)
   </div>
 
 </body>

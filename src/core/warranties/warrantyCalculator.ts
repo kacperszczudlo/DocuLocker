@@ -1,28 +1,55 @@
+/**
+ * Modul kalkulacji gwarancji konsumenckich oraz terminow odstapienia od umowy (zwrotu).
+ * Zgodny z polskim prawem konsumenckim (rekojmia 24 m-ce, zwrot 14 dni przy zakupach na odleglosc).
+ */
+
+/** Status prawno-ochronny przedmiotu objętego gwarancją. */
 export type WarrantyStatus = 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED' | 'CLAIMED';
+
+/** Status uprawnienia do zwrotu towaru bez podania przyczyny. */
 export type ReturnStatus = 'CAN_RETURN' | 'RETURN_EXPIRED';
 
+/** Zbiorczy wynik obliczen terminow ochronnych i wizualnych indykatorow. */
 export interface WarrantyCalculationResult {
-  readonly endDate: string; // YYYY-MM-DD
-  readonly returnDeadline: string; // YYYY-MM-DD
+  /** Koncowa data obowiazywania gwarancji w formacie ISO (YYYY-MM-DD). */
+  readonly endDate: string;
+  /** Graniczna data prawa do odstapienia od zakupu (YYYY-MM-DD). */
+  readonly returnDeadline: string;
+  /** Liczba dni pozostalych do konca gwarancji (wartosc ujemna oznacza przedawnienie). */
   readonly daysRemaining: number;
+  /** Liczba dni pozostalych na dokonanie zwrotu. */
   readonly returnDaysRemaining: number;
+  /** Aktualny wyliczony status ochrony gwarancyjnej. */
   readonly status: WarrantyStatus;
+  /** Status prawa do zwrotu towaru. */
   readonly returnStatus: ReturnStatus;
+  /** Tekstowa etykieta do prezentacji w interfejsie (z uwzglednieniem polskiej odmiany). */
   readonly badgeLabel: string;
+  /** Szesnastkowy kod koloru odznaki zgodny z paleta statusow design systemu. */
   readonly badgeColor: string;
-  readonly progressPercentage: number; // 0 (start) to 100 (expired)
+  /** Procent uplywu okresu gwarancji od 0% (nowy zakup) do 100% (calkowicie wygasla). */
+  readonly progressPercentage: number;
 }
 
+/** Parametry wejsciowe do kalkulatora terminow gwarancji. */
 export interface CalculateWarrantyOptions {
-  readonly purchaseDate: string; // YYYY-MM-DD
-  readonly durationMonths?: number; // domyslnie 24
-  readonly returnWindowDays?: number; // domyslnie 14
+  /** Data transakcji w formacie ISO-8601 (YYYY-MM-DD). */
+  readonly purchaseDate: string;
+  /** Czas trwania gwarancji w pelnych miesiacach (domyslnie 24). */
+  readonly durationMonths?: number;
+  /** Dopuszczalny czas na zwrot w dniach kalendarzowych (domyslnie 14). */
+  readonly returnWindowDays?: number;
+  /** Flaga oznaczajaca trwajacy proces reklamacyjny zgłoszony przez konsumenta. */
   readonly isClaimed?: boolean;
-  readonly referenceDate?: Date; // wstrzykiwana data odniesienia do testow
+  /** Opcjonalna data referencyjna wstrzykiwana na potrzeby deterministycznych testow jednostkowych. */
+  readonly referenceDate?: Date;
 }
 
 /**
- * Formatowanie odmiany dni w jezyku polskim
+ * Formatuje liczbe dni do konca gwarancji z poprawna odmiana gramatyczna w jezyku polskim.
+ *
+ * @param days Liczba dni (dodatnia: pozostalo; zero: dzisiaj; ujemna: po terminie).
+ * @returns Sformatowany komunikat w jezyku polskim.
  */
 export function formatDaysRemaining(days: number): string {
   if (days === 0) {
@@ -47,7 +74,12 @@ export function formatDaysRemaining(days: number): string {
 }
 
 /**
- * Dodawanie miesiecy do daty ISO (YYYY-MM-DD) z uwzglednieniem dlugosci miesiecy
+ * Dodaje zadana liczbe miesiecy do daty w formacie ISO (YYYY-MM-DD),
+ * bezpiecznie korygujac przestepne lata oraz roznice w dlugosciach miesiecy (np. 31 stycznia + 1 miesiac = 28/29 lutego).
+ *
+ * @param isoDate Data poczatkowa w formacie YYYY-MM-DD.
+ * @param months Liczba pelnych miesiecy do dodania.
+ * @returns Nowa data w formacie YYYY-MM-DD.
  */
 export function addMonthsToIsoDate(isoDate: string, months: number): string {
   const [yearStr, monthStr, dayStr] = isoDate.split('-');
@@ -56,7 +88,6 @@ export function addMonthsToIsoDate(isoDate: string, months: number): string {
   const day = parseInt(dayStr, 10);
 
   const targetDate = new Date(Date.UTC(year, month + months, 1));
-  // Ostatni dzien miesiaca docelowego
   const daysInTargetMonth = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth() + 1, 0)).getUTCDate();
   const adjustedDay = Math.min(day, daysInTargetMonth);
 
@@ -65,7 +96,11 @@ export function addMonthsToIsoDate(isoDate: string, months: number): string {
 }
 
 /**
- * Dodawanie dni do daty ISO (YYYY-MM-DD)
+ * Dodaje zadana liczbe dni kalendarzowych do daty w formacie ISO (YYYY-MM-DD).
+ *
+ * @param isoDate Data poczatkowa w formacie YYYY-MM-DD.
+ * @param days Liczba dni do dodania.
+ * @returns Nowa data w formacie YYYY-MM-DD.
  */
 export function addDaysToIsoDate(isoDate: string, days: number): string {
   const [yearStr, monthStr, dayStr] = isoDate.split('-');
@@ -75,7 +110,11 @@ export function addDaysToIsoDate(isoDate: string, days: number): string {
 }
 
 /**
- * Oblicza liczbe dni pomiedzy dwiema datami ISO
+ * Oblicza roznice w pelnych dobach pomiedzy dwiema datami ISO.
+ *
+ * @param fromIso Data poczatkowa (YYYY-MM-DD).
+ * @param toIso Data koncowa (YYYY-MM-DD).
+ * @returns Liczba pelnych dni kalendarzowych (toIso - fromIso).
  */
 export function diffDays(fromIso: string, toIso: string): number {
   const fromMs = Date.parse(fromIso + 'T00:00:00Z');
@@ -84,9 +123,16 @@ export function diffDays(fromIso: string, toIso: string): number {
 }
 
 /**
- * Glowny kalkulator gwarancji i terminow zwrotu
+ * Kalkulator gwarancji i terminow konsumenckich (WarrantyCalculator).
+ * Realizuje precyzyjna logike biznesowa kalkulacji statusow oraz paskow postepu.
  */
 export class WarrantyCalculator {
+  /**
+   * Oblicza pelny zestaw metryk gwarancyjnych i zwrotu na podstawie parametrow zakupu.
+   *
+   * @param options Parametry zakupu (data, dlugosc trwania, status reklamacji).
+   * @returns Kompletny obiekt kalkulacji gwarancyjnej wraz z etykietami UI.
+   */
   static calculate(options: CalculateWarrantyOptions): WarrantyCalculationResult {
     const durationMonths = options.durationMonths ?? 24;
     const returnWindowDays = options.returnWindowDays ?? 14;
@@ -99,7 +145,6 @@ export class WarrantyCalculator {
     const daysRemaining = diffDays(todayIso, endDate);
     const returnDaysRemaining = diffDays(todayIso, returnDeadline);
 
-    // Wyznaczanie statusu
     let status: WarrantyStatus;
     if (options.isClaimed) {
       status = 'CLAIMED';
@@ -113,32 +158,30 @@ export class WarrantyCalculator {
 
     const returnStatus: ReturnStatus = returnDaysRemaining >= 0 ? 'CAN_RETURN' : 'RETURN_EXPIRED';
 
-    // Procent uplywu gwarancji
     const totalDurationDays = Math.max(1, diffDays(options.purchaseDate, endDate));
     const consumedDays = Math.max(0, diffDays(options.purchaseDate, todayIso));
     const progressPercentage = Math.min(100, Math.max(0, Math.round((consumedDays / totalDurationDays) * 100)));
 
-    // Etykieta i kolor odznaki
     let badgeLabel: string;
     let badgeColor: string;
 
     switch (status) {
       case 'CLAIMED':
         badgeLabel = 'W trakcie reklamacji';
-        badgeColor = '#3B82F6'; // Niebieski
+        badgeColor = '#3B82F6';
         break;
       case 'EXPIRED':
         badgeLabel = formatDaysRemaining(daysRemaining);
-        badgeColor = '#64748B'; // Szary
+        badgeColor = '#64748B';
         break;
       case 'EXPIRING_SOON':
         badgeLabel = formatDaysRemaining(daysRemaining);
-        badgeColor = '#F59E0B'; // Pomaranczowy / Ostrzegawczy
+        badgeColor = '#F59E0B';
         break;
       case 'ACTIVE':
       default:
         badgeLabel = `Aktywna (${daysRemaining} dni)`;
-        badgeColor = '#10B981'; // Zielony
+        badgeColor = '#10B981';
         break;
     }
 

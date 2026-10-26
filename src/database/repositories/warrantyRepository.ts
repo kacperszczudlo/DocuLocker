@@ -2,39 +2,67 @@ import { SqlDatabase } from '../connection';
 import { WarrantyStatus } from '../types';
 import { WarrantyCalculator, WarrantyCalculationResult } from '@/core/warranties/warrantyCalculator';
 
+/** Reprezentacja rekordu gwarancji wzbogacona o metadane dokumentu i dynamiczne obliczenia. */
 export interface WarrantyItemWithDetails {
-  readonly id: number; // warranty id
+  /** Identyfikator rekordu w tabeli `warranties`. */
+  readonly id: number;
+  /** Identyfikator powiazanego dokumentu. */
   readonly document_id: string;
+  /** Tytul dokumentu. */
   readonly title: string;
+  /** Nazwa sklepu lub sprzedawcy. */
   readonly store_name: string | null;
+  /** Nazwa kategorii wydatku. */
   readonly category_name: string | null;
+  /** Ikona kategorii. */
   readonly category_icon: string | null;
+  /** Kolor chipu kategorii. */
   readonly category_color: string | null;
+  /** Wartosc transakcji. */
   readonly total_amount: number;
+  /** Waluta zakupu. */
   readonly currency: string;
+  /** Data zakupu w formacie ISO (YYYY-MM-DD). */
   readonly purchase_date: string;
+  /** Czas trwania ochrony w miesiacach. */
   readonly duration_months: number;
+  /** Graniczna data obowiazywania gwarancji (YYYY-MM-DD). */
   readonly end_date: string;
+  /** Okno na zwrot towaru w dniach. */
   readonly return_window_days: number;
+  /** Data uplywu prawa do zwrotu (YYYY-MM-DD). */
   readonly return_deadline: string;
+  /** Biezacy status ochrony gwarancyjnej. */
   readonly status: WarrantyStatus;
+  /** Notatki ze zgloszonej reklamacji. */
   readonly claim_notes: string | null;
+  /** Sciezka do miniatury zdjecia paragonu. */
   readonly primary_image_path: string | null;
-  // Dynamicznie wyliczone wlasciwosci prezentacyjne
+  /** Dynamicznie wyliczone wlasciwosci prezentacyjne (odliczanie, procent, etykieta). */
   readonly calculation: WarrantyCalculationResult;
 }
 
+/** Kryteria filtrowania widoku gwarancji. */
 export interface WarrantyFilter {
+  /** Filtr statusu ('ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'CLAIMED', 'ALL'). */
   readonly status?: WarrantyStatus | 'ALL';
+  /** Opcjonalny filtr kategorii. */
   readonly categoryId?: number;
+  /** Fraza wyszukiwania w tytule dokumentu lub nazwie sklepu. */
   readonly search?: string;
 }
 
+/** Zbiorcze statystyki liczbowe do prezentacji na filtrach i dashboardzie. */
 export interface WarrantyStats {
+  /** Calkowita liczba zarejestrowanych gwarancji. */
   readonly total: number;
+  /** Liczba aktywnych gwarancji. */
   readonly active: number;
+  /** Liczba gwarancji wygasajacych w najblizszych 30 dniach. */
   readonly expiringSoon: number;
+  /** Liczba gwarancji przedawnionych. */
   readonly expired: number;
+  /** Liczba gwarancji w trakcie aktywnej procedury reklamacyjnej. */
   readonly claimed: number;
 }
 
@@ -58,11 +86,21 @@ interface RawWarrantyRow {
   primary_image_path: string | null;
 }
 
+/**
+ * Repozytorium zarzadzania gwarancjami konsumenckimi (WarrantyRepository).
+ * Realizuje synchronizacje statusow, wyliczanie statystyk oraz obsluge reklamacji.
+ */
 export class WarrantyRepository {
+  /**
+   * Inicjalizuje repozytorium gwarancji.
+   *
+   * @param db Polaczenie bazy danych `SqlDatabase`.
+   */
   constructor(private readonly db: SqlDatabase) {}
 
   /**
-   * Synchronizuje statusy w bazie SQLite w oparciu o aktualna date
+   * Synchronizuje statusy w bazie SQLite w oparciu o aktualna date urzadzenia.
+   * Przenosi rekordy do stanu `EXPIRING_SOON` (<= 30 dni) lub `EXPIRED` (< dzisiaj).
    */
   async syncStatuses(): Promise<void> {
     // 1. Oznacz wygasle
@@ -84,7 +122,9 @@ export class WarrantyRepository {
   }
 
   /**
-   * Pobiera statystyki liczbowe do odznak/filtrów
+   * Pobiera statystyki liczbowe pogrupowane wedlug statusu.
+   *
+   * @returns Obiekt zagregowanych statystyk `WarrantyStats`.
    */
   async getStats(): Promise<WarrantyStats> {
     const rows = await this.db.getAllAsync<{ status: string; count: number }>(
@@ -109,7 +149,11 @@ export class WarrantyRepository {
   }
 
   /**
-   * Pobiera liste gwarancji z opcjonalnymi filtrami
+   * Pobiera liste gwarancji z opcjonalnymi kryteriami filtrowania,
+   * posortowana rosnaco wg daty zakonczenia gwarancji (wygasajace najszybciej na gorze).
+   *
+   * @param filter Opcjonalne filtry statusu, kategorii lub wyszukiwania tekstowego.
+   * @returns Tablica gwarancji z przeliczonymi wskaznikami UI.
    */
   async listWarranties(filter?: WarrantyFilter): Promise<WarrantyItemWithDetails[]> {
     let sql = `
@@ -157,7 +201,6 @@ export class WarrantyRepository {
       params.push(term, term);
     }
 
-    // Sortowanie: wygasajace najszybciej na samej gorze
     sql += ' ORDER BY w.end_date ASC;';
 
     const rawRows = await this.db.getAllAsync<RawWarrantyRow>(sql, params);
@@ -179,7 +222,10 @@ export class WarrantyRepository {
   }
 
   /**
-   * Oznaczenie gwarancji jako zgloszonej do reklamacji
+   * Oznacza gwarancje jako bedaca w trakcie procedury reklamacyjnej.
+   *
+   * @param documentId Unikalny identyfikator dokumentu.
+   * @param claimNotes Opcjonalne notatki uzytkownika o zgloszeniu.
    */
   async markAsClaimed(documentId: string, claimNotes?: string): Promise<void> {
     await this.db.runAsync(
@@ -191,7 +237,9 @@ export class WarrantyRepository {
   }
 
   /**
-   * Przywrocenie statusu gwarancji (np. po zakonczeniu reklamacji)
+   * Przywraca standardowy status gwarancji (np. po pozytywnym zakonczeniu reklamacji).
+   *
+   * @param documentId Unikalny identyfikator dokumentu.
    */
   async restoreWarrantyStatus(documentId: string): Promise<void> {
     const row = await this.db.getFirstAsync<{ purchase_date: string; duration_months: number; end_date: string }>(

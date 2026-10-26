@@ -1,25 +1,58 @@
 import { SqlDatabase } from '../connection';
-import { DocumentType, DocumentWithDetails, WarrantyStatus } from '../types';
+import { DocumentType, DocumentWithDetails } from '../types';
 
+/** Parametry wejsciowe procedury tworzenia dokumentu w repozytorium. */
 export interface CreateDocumentParams {
-  readonly id: string; // UUID v4
+  /** Unikalny identyfikator UUID v4 dokumentu. */
+  readonly id: string;
+  /** Tytul dokumentu. */
   readonly title: string;
+  /** Opcjonalny identyfikator powiazanego sklepu. */
   readonly storeId?: number | null;
+  /** Opcjonalny identyfikator przypisanej kategorii. */
   readonly categoryId?: number | null;
+  /** Kwota brutto z paragonu. */
   readonly totalAmount: number;
+  /** Waluta rozliczeniowa (domyslnie 'PLN'). */
   readonly currency?: string;
-  readonly purchaseDate: string; // YYYY-MM-DD
+  /** Data zakupu (YYYY-MM-DD). */
+  readonly purchaseDate: string;
+  /** Typ dokumentu (RECEIPT, INVOICE, CONTRACT, WARRANTY_CARD, OTHER). */
   readonly documentType?: DocumentType;
+  /** Opcjonalne notatki uzytkownika. */
   readonly notes?: string | null;
+  /** Surowy tekst OCR zachowywany w celu indeksowania w SQLite FTS5. */
   readonly rawOcrText?: string | null;
+  /** Czas trwania gwarancji w pelnych miesiacach (domyslnie 24). */
   readonly warrantyMonths?: number;
+  /** Czas na zwrot towaru w dniach kalendarzowych (domyslnie 14). */
   readonly returnWindowDays?: number;
+  /** Sciezka do zapisanego zdjecia paragonu na nosniku urzadzenia. */
   readonly primaryImagePath?: string | null;
 }
 
+/**
+ * Repozytorium dokumentow sejfu fiskalnego (DocumentRepository).
+ * Realizuje pelny CRUD, wyszukiwanie pelnotekstowe FTS5 z polskimi znakami diakrytycznymi
+ * oraz zarzadzanie kaskadowymi relacjami gwarancji i zalacznikow.
+ */
 export class DocumentRepository {
+  /**
+   * Inicjalizuje repozytorium dokumentow.
+   *
+   * @param db Polaczenie bazy danych `SqlDatabase`.
+   */
   constructor(private readonly db: SqlDatabase) {}
 
+  /**
+   * Tworzy nowy dokument wewnatrz atomowej transakcji SQLite:
+   * 1. Wstawia glowny rekord do tabeli `documents` (co automatycznie zasila FTS5 przez triggery).
+   * 2. Wylicza i wstawia rekord ochrony do tabeli `warranties`.
+   * 3. Wstawia powiazanie zdjecia do tabeli `document_attachments` jako glowny zalacznik.
+   *
+   * @param params Komplet parametrow tworzonego dokumentu.
+   * @returns Unikalny identyfikator UUID utworzonego dokumentu.
+   */
   async createDocument(params: CreateDocumentParams): Promise<string> {
     const currency = params.currency ?? 'PLN';
     const documentType = params.documentType ?? 'RECEIPT';
@@ -84,6 +117,13 @@ export class DocumentRepository {
     return params.id;
   }
 
+  /**
+   * Pobiera pojedynczy dokument wedlug jego unikalnego identyfikatora UUID
+   * z pelnymi zlaczeniami (sklep, kategoria, status gwarancji, sciezka zdjecia).
+   *
+   * @param id UUID dokumentu.
+   * @returns Szczegolowy rekord `DocumentWithDetails` lub null.
+   */
   async getDocumentById(id: string): Promise<DocumentWithDetails | null> {
     const sql = `
       SELECT 
@@ -104,6 +144,13 @@ export class DocumentRepository {
     return this.db.getFirstAsync<DocumentWithDetails>(sql, [id]);
   }
 
+  /**
+   * Pobiera liste dokumentow sejfu, opcjonalnie przefiltrowana wg kategorii,
+   * posortowana malejaco wg daty zakupu (najnowsze na poczatku).
+   *
+   * @param categoryId Opcjonalny identyfikator kategorii.
+   * @returns Tablica dokumentow ze zlaczeniami.
+   */
   async listDocuments(categoryId?: number): Promise<DocumentWithDetails[]> {
     let sql = `
       SELECT 
@@ -131,6 +178,15 @@ export class DocumentRepository {
     return this.db.getAllAsync<DocumentWithDetails>(sql, params);
   }
 
+  /**
+   * Przeszukuje tresc sejfu przy uzyciu wirtualnej tabeli FTS5 (Full-Text Search),
+   * uwzgledniajacej polska fleksje i brak diakrytykow (`tokenize='unicode61 remove_diacritics 2'`).
+   * W przypadku braku modulu FTS5 w srodowisku automatycznie stosuje bezpieczny fallback LIKE.
+   *
+   * @param query Szukana fraza tekstowa (tytul, nazwa pozycji, NIP, tekst paragonu).
+   * @param categoryId Opcjonalny filtr kategorii.
+   * @returns Posortowana wg relewancji (rank) lista dokumentow.
+   */
   async searchFullText(query: string, categoryId?: number): Promise<DocumentWithDetails[]> {
     const cleanQuery = query.trim().replace(/['"*]/g, '');
     if (!cleanQuery) {
@@ -195,6 +251,11 @@ export class DocumentRepository {
     }
   }
 
+  /**
+   * Usuwa dokument z bazy danych wraz z powiazanymi rekordami (kaskadowo: warranties, attachments, FTS5).
+   *
+   * @param id UUID dokumentu do usuniecia.
+   */
   async deleteDocument(id: string): Promise<void> {
     await this.db.runAsync('DELETE FROM documents WHERE id = ?;', [id]);
   }
