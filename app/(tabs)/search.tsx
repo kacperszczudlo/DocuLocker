@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { CategoryRepository } from '@/database/repositories/categoryRepository';
 import { DocumentWithDetails, CategoryRow } from '@/database/types';
 import { PdfGenerator, ComplaintData } from '@/services/pdf/pdfGenerator';
+import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -134,9 +135,6 @@ export default function SearchScreen() {
     }
   };
 
-  /**
-   * Wyciaga snippet z tekstu OCR jesli fraza nie wystepuje w tytule
-   */
   const getOcrSnippet = (doc: DocumentWithDetails, query: string): string | null => {
     if (!query.trim() || !doc.raw_ocr_text) return null;
     const q = query.trim().toLowerCase();
@@ -172,10 +170,13 @@ export default function SearchScreen() {
 
         <Text style={styles.titleText}>{item.title}</Text>
 
-        {/* Snippet z odnalezionym tekstem w OCR */}
+        {/* Snippet z odnalezionym tekstem w OCR (pelne tlo, bez zakazanego borderLeft side-stripe) */}
         {ocrSnippet && (
           <View style={styles.ocrSnippetBox}>
-            <Text style={styles.ocrSnippetLabel}>Trafienie w treści OCR:</Text>
+            <View style={styles.ocrSnippetHeader}>
+              <Text style={styles.ocrSnippetIcon}>🎯</Text>
+              <Text style={styles.ocrSnippetLabel}>Trafienie w treści OCR:</Text>
+            </View>
             <Text style={styles.ocrSnippetText}>"{ocrSnippet}"</Text>
           </View>
         )}
@@ -193,6 +194,10 @@ export default function SearchScreen() {
             <TouchableOpacity
               style={styles.actionBtnOutline}
               onPress={() => setPreviewDoc(item)}
+              activeOpacity={touchTargets.activeOpacity}
+              accessibilityRole="button"
+              accessibilityLabel="Podgląd zdjęcia paragonu"
+              hitSlop={touchTargets.minHitSlop}
             >
               <Text style={styles.actionBtnOutlineText}>🔍 Podgląd</Text>
             </TouchableOpacity>
@@ -200,6 +205,10 @@ export default function SearchScreen() {
           <TouchableOpacity
             style={styles.actionBtnPrimary}
             onPress={() => handleOpenComplaintModal(item)}
+            activeOpacity={touchTargets.activeOpacity}
+            accessibilityRole="button"
+            accessibilityLabel="Wygeneruj wniosek reklamacyjny PDF"
+            hitSlop={touchTargets.minHitSlop}
           >
             <Text style={styles.actionBtnPrimaryText}>📄 Wniosek PDF</Text>
           </TouchableOpacity>
@@ -224,13 +233,21 @@ export default function SearchScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Szukaj produktu z paragonu, sklepu, NIP..."
-          placeholderTextColor="#64748B"
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={handleQueryChange}
           autoCapitalize="none"
+          accessibilityRole="search"
+          accessibilityLabel="Pole wyszukiwania pełnotekstowego FTS5"
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => handleQueryChange('')} style={styles.clearBtn}>
+          <TouchableOpacity
+            onPress={() => handleQueryChange('')}
+            style={styles.clearBtn}
+            hitSlop={touchTargets.minHitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Wyczyść wyszukiwanie"
+          >
             <Text style={styles.clearBtnText}>✕</Text>
           </TouchableOpacity>
         )}
@@ -250,6 +267,11 @@ export default function SearchScreen() {
               <TouchableOpacity
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
                 onPress={() => handleCategorySelect(item.id)}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel={`Kategoria ${item.name}`}
+                accessibilityState={{ selected: isSelected }}
+                hitSlop={touchTargets.minHitSlop}
               >
                 <Text style={[styles.categoryChipText, isSelected && styles.categoryChipTextSelected]}>
                   {item.name}
@@ -301,7 +323,12 @@ export default function SearchScreen() {
               <Text style={styles.previewTitle} numberOfLines={1}>
                 {previewDoc?.title}
               </Text>
-              <TouchableOpacity onPress={() => setPreviewDoc(null)}>
+              <TouchableOpacity
+                onPress={() => setPreviewDoc(null)}
+                hitSlop={touchTargets.minHitSlop}
+                accessibilityRole="button"
+                accessibilityLabel="Zamknij podgląd"
+              >
                 <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -317,6 +344,9 @@ export default function SearchScreen() {
             <TouchableOpacity
               style={styles.closeFullBtn}
               onPress={() => setPreviewDoc(null)}
+              activeOpacity={touchTargets.activeOpacity}
+              accessibilityRole="button"
+              accessibilityLabel="Zamknij"
             >
               <Text style={styles.closeFullBtnText}>Zamknij podgląd</Text>
             </TouchableOpacity>
@@ -335,7 +365,12 @@ export default function SearchScreen() {
           <View style={styles.complaintModalContent}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.complaintModalTitle}>Zgłoszenie Reklamacyjne PDF</Text>
-              <TouchableOpacity onPress={() => setComplaintDoc(null)}>
+              <TouchableOpacity
+                onPress={() => setComplaintDoc(null)}
+                hitSlop={touchTargets.minHitSlop}
+                accessibilityRole="button"
+                accessibilityLabel="Zamknij formularz reklamacyjny"
+              >
                 <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -353,14 +388,14 @@ export default function SearchScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Imię i nazwisko (wymagane)"
-                placeholderTextColor="#64748B"
+                placeholderTextColor={colors.textMuted}
                 value={consumerName}
                 onChangeText={setConsumerName}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Adres korespondencyjny (ulica, kod, miasto)"
-                placeholderTextColor="#64748B"
+                placeholderTextColor={colors.textMuted}
                 value={consumerAddress}
                 onChangeText={setConsumerAddress}
               />
@@ -368,7 +403,7 @@ export default function SearchScreen() {
                 <TextInput
                   style={[styles.input, styles.inputHalf]}
                   placeholder="Numer telefonu"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor={colors.textMuted}
                   value={consumerPhone}
                   onChangeText={setConsumerPhone}
                   keyboardType="phone-pad"
@@ -376,7 +411,7 @@ export default function SearchScreen() {
                 <TextInput
                   style={[styles.input, styles.inputHalf]}
                   placeholder="Adres e-mail"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor={colors.textMuted}
                   value={consumerEmail}
                   onChangeText={setConsumerEmail}
                   keyboardType="email-address"
@@ -387,14 +422,14 @@ export default function SearchScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Data ujawnienia wady (YYYY-MM-DD)"
-                placeholderTextColor="#64748B"
+                placeholderTextColor={colors.textMuted}
                 value={defectNoticeDate}
                 onChangeText={setDefectNoticeDate}
               />
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
                 placeholder="Dokładny opis wady / usterki (wymagane)..."
-                placeholderTextColor="#64748B"
+                placeholderTextColor={colors.textMuted}
                 value={defectDescription}
                 onChangeText={setDefectDescription}
                 multiline
@@ -413,6 +448,10 @@ export default function SearchScreen() {
                     key={opt.key}
                     style={[styles.demandBtn, consumerDemand === opt.key && styles.demandBtnSelected]}
                     onPress={() => setConsumerDemand(opt.key)}
+                    activeOpacity={touchTargets.activeOpacity}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Żądanie: ${opt.label}`}
+                    accessibilityState={{ selected: consumerDemand === opt.key }}
                   >
                     <Text
                       style={[
@@ -430,7 +469,7 @@ export default function SearchScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="Numer konta bankowego do zwrotu środków"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor={colors.textMuted}
                   value={bankAccount}
                   onChangeText={setBankAccount}
                 />
@@ -443,6 +482,9 @@ export default function SearchScreen() {
                 style={styles.cancelBtn}
                 onPress={() => setComplaintDoc(null)}
                 disabled={isGeneratingPdf}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel="Anuluj"
               >
                 <Text style={styles.cancelBtnText}>Anuluj</Text>
               </TouchableOpacity>
@@ -450,6 +492,9 @@ export default function SearchScreen() {
                 style={styles.generateBtn}
                 onPress={handleGeneratePdf}
                 disabled={isGeneratingPdf}
+                activeOpacity={touchTargets.activeOpacity}
+                accessibilityRole="button"
+                accessibilityLabel="Generuj i udostępnij wniosek PDF"
               >
                 {isGeneratingPdf ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
@@ -468,192 +513,210 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 6,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
   },
   headerTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: '800',
   },
   headerSubtitle: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 12,
+    fontWeight: '500',
     marginTop: 2,
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 8,
-    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    minHeight: 46,
   },
   searchIcon: {
     fontSize: 14,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   searchInput: {
     flex: 1,
-    height: 42,
-    color: '#F8FAFC',
+    height: 44,
+    color: colors.textPrimary,
     fontSize: 14,
   },
   clearBtn: {
-    padding: 6,
+    padding: spacing.sm,
   },
   clearBtnText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: 'bold',
   },
   categoriesContainer: {
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   categoriesList: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   categoryChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
+    minHeight: 36,
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    justifyContent: 'center',
   },
   categoryChipSelected: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
   },
   categoryChipText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   categoryChipTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '700',
   },
   resultsHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   resultsCountText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xl,
   },
   card: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   storeCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
     flex: 1,
   },
   storeName: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 13,
     fontWeight: '700',
   },
   categoryPill: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 11,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: radii.xs,
   },
   amountText: {
-    color: '#F1F5F9',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
+    color: colors.primaryLight,
   },
   titleText: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   ocrSnippetBox: {
-    backgroundColor: '#0F172A',
-    borderLeftWidth: 3,
-    borderLeftColor: '#38BDF8',
-    padding: 8,
-    borderRadius: 4,
-    marginBottom: 8,
+    backgroundColor: colors.primarySubtle,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: spacing.sm,
+    borderRadius: radii.sm,
+    marginBottom: spacing.sm,
+  },
+  ocrSnippetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  ocrSnippetIcon: {
+    fontSize: 11,
   },
   ocrSnippetLabel: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   ocrSnippetText: {
-    color: '#E2E8F0',
+    color: colors.textPrimary,
     fontSize: 12,
     fontStyle: 'italic',
-    marginTop: 2,
+    lineHeight: 16,
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   metaText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 11,
   },
   actionsRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
-    paddingTop: 8,
-    gap: 10,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
   },
   actionBtnOutline: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.sm,
     borderWidth: 1,
-    borderColor: '#475569',
-    backgroundColor: '#0F172A',
+    borderColor: colors.borderLight,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionBtnOutlineText: {
-    color: '#CBD5E1',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   actionBtnPrimary: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 6,
-    backgroundColor: '#0284C7',
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.sm,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionBtnPrimaryText: {
     color: '#FFFFFF',
@@ -662,73 +725,74 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   emptyIcon: {
     fontSize: 44,
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   emptyTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   emptySubtitle: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 19,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
-    padding: 16,
+    padding: spacing.md,
   },
   previewContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
     maxHeight: '85%',
   },
   previewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   previewTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
     flex: 1,
-    marginRight: 10,
+    marginRight: spacing.sm,
   },
   closeBtnText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 18,
     fontWeight: 'bold',
-    padding: 4,
+    padding: spacing.xs,
   },
   previewImage: {
     width: '100%',
     height: 400,
-    borderRadius: 8,
-    backgroundColor: '#0F172A',
-    marginBottom: 12,
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
+    marginBottom: spacing.md,
   },
   noImageText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
-    paddingVertical: 40,
+    paddingVertical: spacing.xxl,
   },
   closeFullBtn: {
-    backgroundColor: '#334155',
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: colors.surfaceElevated,
+    minHeight: 44,
+    borderRadius: radii.sm,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   closeFullBtnText: {
@@ -737,63 +801,65 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   complaintModalContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 14,
-    padding: 18,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
     maxHeight: '90%',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   complaintModalTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 17,
     fontWeight: '800',
   },
   complaintScroll: {
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
   complaintSummaryBox: {
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 14,
+    backgroundColor: colors.background,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   complaintProductTitle: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 14,
     fontWeight: '700',
   },
   complaintProductDetails: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
   formSectionHeader: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
-    marginBottom: 8,
-    marginTop: 4,
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
   },
   input: {
-    backgroundColor: '#0F172A',
-    color: '#F8FAFC',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
     fontSize: 13,
     borderWidth: 1,
-    borderColor: '#334155',
-    marginBottom: 10,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+    minHeight: 44,
   },
   inputMultiline: {
     height: 75,
@@ -801,7 +867,7 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
   inputHalf: {
     flex: 1,
@@ -809,54 +875,60 @@ const styles = StyleSheet.create({
   demandOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   demandBtn: {
-    backgroundColor: '#0F172A',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    backgroundColor: colors.background,
+    minHeight: 38,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.sm,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   demandBtnSelected: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
   },
   demandBtnText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   demandBtnTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '700',
   },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 10,
+    gap: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
-    paddingTop: 12,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
   },
   cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#0F172A',
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#94A3B8',
+    color: colors.textSecondary,
     fontWeight: '600',
     fontSize: 13,
   },
   generateBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    backgroundColor: '#0284C7',
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.sm,
+    backgroundColor: colors.primary,
     minWidth: 180,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   generateBtnText: {
