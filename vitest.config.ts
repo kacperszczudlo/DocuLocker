@@ -17,6 +17,7 @@ export default defineConfig({
       'expo-sqlite': path.resolve(__dirname, './tests/mocks/expoSqliteMock.ts'),
       'expo-file-system/legacy': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
       'expo-file-system': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
+      'expo-notifications': path.resolve(__dirname, './tests/mocks/expoNotificationsMock.ts'),
       '@react-native-ml-kit/text-recognition': path.resolve(__dirname, './tests/mocks/mlKitMock.ts'),
     },
   },
