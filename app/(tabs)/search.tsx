@@ -20,6 +20,10 @@ import { DocumentWithDetails, CategoryRow } from '@/database/types';
 import { PdfGenerator, ComplaintData } from '@/services/pdf/pdfGenerator';
 import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
+/**
+ * Ekran wyszukiwania pelnotekstowego FTS5 w baze dokumentow SQLite.
+ * Obsluguje filtrowanie po kategoriach, podglad skanow oraz generowanie pism PDF.
+ */
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -95,11 +99,11 @@ export default function SearchScreen() {
   const handleGeneratePdf = async () => {
     if (!complaintDoc) return;
     if (!consumerName.trim()) {
-      Alert.alert('Wymagane pole', 'Wpisz imię i nazwisko konsumenta.');
+      Alert.alert('Wymagane pole', 'Wpisz imie i nazwisko konsumenta.');
       return;
     }
     if (!defectDescription.trim()) {
-      Alert.alert('Wymagane pole', 'Wprowadź krótki opis stwierdzonej usterki.');
+      Alert.alert('Wymagane pole', 'Wprowadz opis stwierdzonej usterki.');
       return;
     }
 
@@ -129,7 +133,7 @@ export default function SearchScreen() {
       setComplaintDoc(null);
     } catch (err) {
       console.error('[DocuLocker] Blad generowania PDF:', err);
-      Alert.alert('Błąd', 'Nie udało się wygenerować lub udostępnić pliku PDF.');
+      Alert.alert('Blad', 'Nie udalo sie wygenerowac lub udostepnic pliku PDF.');
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -170,21 +174,18 @@ export default function SearchScreen() {
 
         <Text style={styles.titleText}>{item.title}</Text>
 
-        {/* Snippet z odnalezionym tekstem w OCR (pelne tlo, bez zakazanego borderLeft side-stripe) */}
+        {/* Snippet z odnalezionym tekstem w OCR */}
         {ocrSnippet && (
           <View style={styles.ocrSnippetBox}>
-            <View style={styles.ocrSnippetHeader}>
-              <Text style={styles.ocrSnippetIcon}>🎯</Text>
-              <Text style={styles.ocrSnippetLabel}>Trafienie w treści OCR:</Text>
-            </View>
+            <Text style={styles.ocrSnippetLabel}>Trafienie w tresci paragonu:</Text>
             <Text style={styles.ocrSnippetText}>"{ocrSnippet}"</Text>
           </View>
         )}
 
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>📅 Zakup: {item.purchase_date}</Text>
+          <Text style={styles.metaText}>Zakup: {item.purchase_date}</Text>
           {item.warranty_end_date && (
-            <Text style={styles.metaText}>🛡️ Gwarancja do: {item.warranty_end_date}</Text>
+            <Text style={styles.metaText}>Gwarancja do: {item.warranty_end_date}</Text>
           )}
         </View>
 
@@ -196,10 +197,10 @@ export default function SearchScreen() {
               onPress={() => setPreviewDoc(item)}
               activeOpacity={touchTargets.activeOpacity}
               accessibilityRole="button"
-              accessibilityLabel="Podgląd zdjęcia paragonu"
+              accessibilityLabel="Podglad zdjecia paragonu"
               hitSlop={touchTargets.minHitSlop}
             >
-              <Text style={styles.actionBtnOutlineText}>🔍 Podgląd</Text>
+              <Text style={styles.actionBtnOutlineText}>Podglad</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -210,7 +211,7 @@ export default function SearchScreen() {
             accessibilityLabel="Wygeneruj wniosek reklamacyjny PDF"
             hitSlop={touchTargets.minHitSlop}
           >
-            <Text style={styles.actionBtnPrimaryText}>📄 Wniosek PDF</Text>
+            <Text style={styles.actionBtnPrimaryText}>Wniosek PDF</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -223,13 +224,12 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Szukaj w Sejfie</Text>
         <Text style={styles.headerSubtitle}>
-          Wyszukiwarka pełnotekstowa SQLite FTS5 (OCR, pozycje, sklepy)
+          Wyszukiwarka pelnotekstowa SQLite FTS5 (OCR, pozycje, sklepy)
         </Text>
       </View>
 
       {/* Pasek wyszukiwania */}
       <View style={styles.searchBox}>
-        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Szukaj produktu z paragonu, sklepu, NIP..."
@@ -238,7 +238,7 @@ export default function SearchScreen() {
           onChangeText={handleQueryChange}
           autoCapitalize="none"
           accessibilityRole="search"
-          accessibilityLabel="Pole wyszukiwania pełnotekstowego FTS5"
+          accessibilityLabel="Pole wyszukiwania pelnotekstowego FTS5"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity
@@ -246,9 +246,9 @@ export default function SearchScreen() {
             style={styles.clearBtn}
             hitSlop={touchTargets.minHitSlop}
             accessibilityRole="button"
-            accessibilityLabel="Wyczyść wyszukiwanie"
+            accessibilityLabel="Wyczysc wyszukiwanie"
           >
-            <Text style={styles.clearBtnText}>✕</Text>
+            <Text style={styles.clearBtnText}>Wyczysc</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -287,7 +287,7 @@ export default function SearchScreen() {
         <Text style={styles.resultsCountText}>
           {isSearching
             ? 'Przeszukiwanie bazy SQLite...'
-            : `Znaleziono ${results.length} ${results.length === 1 ? 'pozycję' : 'pozycji'}`}
+            : `Znaleziono ${results.length} ${results.length === 1 ? 'pozycje' : 'pozycji'}`}
         </Text>
       </View>
 
@@ -299,12 +299,11 @@ export default function SearchScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🔍</Text>
-            <Text style={styles.emptyTitle}>Brak wyników</Text>
+            <Text style={styles.emptyTitle}>Brak wynikow</Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery
-                ? `Nie znaleziono paragonów zawierających frazę "${searchQuery}". Spróbuj innego słowa lub wyszukaj po nazwie sklepu.`
-                : 'Wpisz nazwę zakupionego przedmiotu lub sklepu, aby przeszukać bazę.'}
+                ? `Nie znaleziono pozycji zawierajacych fraze "${searchQuery}". Sprobuj innego slowa lub nazwy sklepu.`
+                : 'Wpisz nazwe zakupionego przedmiotu lub sklepu, aby przeszukac baze.'}
             </Text>
           </View>
         }
@@ -327,9 +326,9 @@ export default function SearchScreen() {
                 onPress={() => setPreviewDoc(null)}
                 hitSlop={touchTargets.minHitSlop}
                 accessibilityRole="button"
-                accessibilityLabel="Zamknij podgląd"
+                accessibilityLabel="Zamknij podglad"
               >
-                <Text style={styles.closeBtnText}>✕</Text>
+                <Text style={styles.closeBtnText}>Zamknij</Text>
               </TouchableOpacity>
             </View>
             {previewDoc?.primary_image_path ? (
@@ -339,7 +338,7 @@ export default function SearchScreen() {
                 resizeMode="contain"
               />
             ) : (
-              <Text style={styles.noImageText}>Brak zapisanego zdjęcia dla tego dokumentu.</Text>
+              <Text style={styles.noImageText}>Brak zapisanego zdjecia dla tego dokumentu.</Text>
             )}
             <TouchableOpacity
               style={styles.closeFullBtn}
@@ -348,7 +347,7 @@ export default function SearchScreen() {
               accessibilityRole="button"
               accessibilityLabel="Zamknij"
             >
-              <Text style={styles.closeFullBtnText}>Zamknij podgląd</Text>
+              <Text style={styles.closeFullBtnText}>Zamknij podglad</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -364,14 +363,14 @@ export default function SearchScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.complaintModalContent}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.complaintModalTitle}>Zgłoszenie Reklamacyjne PDF</Text>
+              <Text style={styles.complaintModalTitle}>Zgloszenie Reklamacyjne PDF</Text>
               <TouchableOpacity
                 onPress={() => setComplaintDoc(null)}
                 hitSlop={touchTargets.minHitSlop}
                 accessibilityRole="button"
                 accessibilityLabel="Zamknij formularz reklamacyjny"
               >
-                <Text style={styles.closeBtnText}>✕</Text>
+                <Text style={styles.closeBtnText}>Zamknij</Text>
               </TouchableOpacity>
             </View>
 
@@ -384,10 +383,10 @@ export default function SearchScreen() {
                 </Text>
               </View>
 
-              <Text style={styles.formSectionHeader}>Dane Konsumenta (Zgłaszającego)</Text>
+              <Text style={styles.formSectionHeader}>Dane Konsumenta (Zglaszajacego)</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Imię i nazwisko (wymagane)"
+                placeholder="Imie i nazwisko (wymagane)"
                 placeholderTextColor={colors.textMuted}
                 value={consumerName}
                 onChangeText={setConsumerName}
@@ -418,7 +417,7 @@ export default function SearchScreen() {
                 />
               </View>
 
-              <Text style={styles.formSectionHeader}>Szczegóły Usterki</Text>
+              <Text style={styles.formSectionHeader}>Szczegoly Usterki</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Data ujawnienia wady (YYYY-MM-DD)"
@@ -428,7 +427,7 @@ export default function SearchScreen() {
               />
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
-                placeholder="Dokładny opis wady / usterki (wymagane)..."
+                placeholder="Dokladny opis wady lub usterki..."
                 placeholderTextColor={colors.textMuted}
                 value={defectDescription}
                 onChangeText={setDefectDescription}
@@ -436,13 +435,13 @@ export default function SearchScreen() {
                 numberOfLines={3}
               />
 
-              <Text style={styles.formSectionHeader}>Żądanie Reklamacyjne</Text>
+              <Text style={styles.formSectionHeader}>Zadanie Reklamacyjne</Text>
               <View style={styles.demandOptions}>
                 {[
                   { key: 'REPAIR' as const, label: 'Naprawa' },
                   { key: 'REPLACEMENT' as const, label: 'Wymiana na nowy' },
-                  { key: 'REFUND' as const, label: 'Zwrot gotówki' },
-                  { key: 'PRICE_REDUCTION' as const, label: 'Obniżenie ceny' },
+                  { key: 'REFUND' as const, label: 'Zwrot gotowki' },
+                  { key: 'PRICE_REDUCTION' as const, label: 'Obnizenie ceny' },
                 ].map((opt) => (
                   <TouchableOpacity
                     key={opt.key}
@@ -450,7 +449,7 @@ export default function SearchScreen() {
                     onPress={() => setConsumerDemand(opt.key)}
                     activeOpacity={touchTargets.activeOpacity}
                     accessibilityRole="button"
-                    accessibilityLabel={`Żądanie: ${opt.label}`}
+                    accessibilityLabel={`Zadanie: ${opt.label}`}
                     accessibilityState={{ selected: consumerDemand === opt.key }}
                   >
                     <Text
@@ -468,7 +467,7 @@ export default function SearchScreen() {
               {(consumerDemand === 'REFUND' || consumerDemand === 'PRICE_REDUCTION') && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Numer konta bankowego do zwrotu środków"
+                  placeholder="Numer konta bankowego do zwrotu srodkow"
                   placeholderTextColor={colors.textMuted}
                   value={bankAccount}
                   onChangeText={setBankAccount}
@@ -494,12 +493,12 @@ export default function SearchScreen() {
                 disabled={isGeneratingPdf}
                 activeOpacity={touchTargets.activeOpacity}
                 accessibilityRole="button"
-                accessibilityLabel="Generuj i udostępnij wniosek PDF"
+                accessibilityLabel="Generuj i udostepnij wniosek PDF"
               >
                 {isGeneratingPdf ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.generateBtnText}>Generuj i Udostępnij PDF</Text>
+                  <Text style={styles.generateBtnText}>Generuj i Udostepnij PDF</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -544,10 +543,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     minHeight: 46,
   },
-  searchIcon: {
-    fontSize: 14,
-    marginRight: spacing.sm,
-  },
   searchInput: {
     flex: 1,
     height: 44,
@@ -559,8 +554,8 @@ const styles = StyleSheet.create({
   },
   clearBtnText: {
     color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '600',
   },
   categoriesContainer: {
     marginBottom: spacing.xs,
@@ -657,15 +652,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     marginBottom: spacing.sm,
   },
-  ocrSnippetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
-  },
-  ocrSnippetIcon: {
-    fontSize: 11,
-  },
   ocrSnippetLabel: {
     color: colors.primaryLight,
     fontSize: 10,
@@ -728,10 +714,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.lg,
   },
-  emptyIcon: {
-    fontSize: 44,
-    marginBottom: spacing.sm,
-  },
   emptyTitle: {
     color: colors.textPrimary,
     fontSize: 16,
@@ -771,8 +753,8 @@ const styles = StyleSheet.create({
   },
   closeBtnText: {
     color: colors.textSecondary,
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '600',
     padding: spacing.xs,
   },
   previewImage: {

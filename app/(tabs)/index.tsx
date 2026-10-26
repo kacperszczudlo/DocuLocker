@@ -7,6 +7,10 @@ import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { CategoryRow, DocumentWithDetails } from '@/database/types';
 import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
 
+/**
+ * Ekran glowny Dashboard prezentujacy statystyki bazy,
+ * horyzontalna liste kategorii oraz ostatnio zarejestrowane dokumenty.
+ */
 export default function DashboardScreen() {
   const router = useRouter();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -43,21 +47,21 @@ export default function DashboardScreen() {
       <View style={styles.statsCard}>
         <View style={styles.statsInfo}>
           <Text style={styles.statsLabel}>Lokalna baza SQLite (Offline)</Text>
-          <Text style={styles.statsValue}>{documents.length} dokumentów w sejfie</Text>
+          <Text style={styles.statsValue}>{documents.length} dokumentow w sejfie</Text>
         </View>
         <TouchableOpacity
           style={styles.quickAddBtn}
           onPress={() => router.push('/scan')}
           activeOpacity={touchTargets.activeOpacity}
           accessibilityRole="button"
-          accessibilityLabel="Szybkie skanowanie paragonu"
+          accessibilityLabel="Szybkie dodawanie paragonu"
           hitSlop={touchTargets.minHitSlop}
         >
-          <Text style={styles.quickAddBtnText}>+ Skanuj</Text>
+          <Text style={styles.quickAddBtnText}>+ Dodaj</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Wybór kategorii */}
+      {/* Wybor kategorii */}
       <Text style={styles.sectionTitle}>Kategorie</Text>
       <View style={styles.categoriesContainer}>
         <FlatList
@@ -87,14 +91,13 @@ export default function DashboardScreen() {
         />
       </View>
 
-      {/* Lista dokumentów */}
+      {/* Lista dokumentow */}
       <Text style={styles.sectionTitle}>Ostatnie dokumenty</Text>
       {documents.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>📦</Text>
-          <Text style={styles.emptyText}>Brak zapisanych paragonów</Text>
+          <Text style={styles.emptyText}>Brak zapisanych paragonow</Text>
           <Text style={styles.emptySubtext}>
-            Zrób zdjęcie paragonu aparatem lub wybierz z galerii, a sztuczna inteligencja ML Kit natychmiast odczyta dane bez wysyłania do chmury.
+            Zrob zdjecie paragonu aparatem lub wybierz plik z pamieci urzadzenia. System ML Kit przetworzy dane lokalnie.
           </Text>
           <TouchableOpacity
             style={styles.emptyActionBtn}
@@ -103,7 +106,7 @@ export default function DashboardScreen() {
             accessibilityRole="button"
             accessibilityLabel="Zeskanuj pierwszy paragon"
           >
-            <Text style={styles.emptyActionBtnText}>Zeskanuj pierwszy paragon</Text>
+            <Text style={styles.emptyActionBtnText}>Zeskanuj paragon</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -116,11 +119,11 @@ export default function DashboardScreen() {
               <View style={styles.docLeft}>
                 <Text style={styles.docTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.docMeta}>
-                  {item.purchase_date} {item.store_name ? `• ${item.store_name}` : ''}
+                  {item.purchase_date} {item.store_name ? `| ${item.store_name}` : ''}
                 </Text>
                 {item.warranty_end_date && (
                   <Text style={styles.docWarranty}>
-                    🛡️ Gwarancja do: {item.warranty_end_date}
+                    Gwarancja do: {item.warranty_end_date}
                   </Text>
                 )}
               </View>
@@ -132,7 +135,7 @@ export default function DashboardScreen() {
         />
       )}
 
-      {/* Pływający przycisk akcji (FAB) - min 48x48dp */}
+      {/* Plywajacy przycisk akcji (FAB) */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/scan')}
@@ -239,10 +242,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing.md,
   },
   emptyText: {
     color: colors.textPrimary,

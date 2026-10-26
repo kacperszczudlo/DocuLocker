@@ -5,22 +5,41 @@ import { NotificationService } from '@/services/notifications/notificationServic
 import { WarrantyCalculator } from '@/core/warranties/warrantyCalculator';
 import { DocumentType } from '@/database/types';
 
+/** Parametry wejsciowe zapisu dokumentu fiskalnego lub faktury. */
 export interface SaveDocumentInput {
+  /** Tytul nadany przez uzytkownika lub wygenerowany automatycznie. */
   readonly title: string;
+  /** Opcjonalna nazwa punktu handlowego. */
   readonly storeName?: string | null;
+  /** Opcjonalny NIP wystawcy dokumentu. */
   readonly taxId?: string | null;
+  /** Identyfikator przypisanej kategorii wydatku. */
   readonly categoryId?: number | null;
+  /** Laczna kwota transakcji. */
   readonly totalAmount: number;
+  /** Kod waluty transakcji (domyslnie 'PLN'). */
   readonly currency?: string;
-  readonly purchaseDate: string; // YYYY-MM-DD
+  /** Data zakupu w formacie ISO-8601 (YYYY-MM-DD). */
+  readonly purchaseDate: string;
+  /** Typ dokumentu (RECEIPT, INVOICE, WARRANTY_CARD, OTHER). */
   readonly documentType?: DocumentType;
+  /** Opcjonalne notatki uzytkownika. */
   readonly notes?: string | null;
+  /** Surowy tekst OCR zachowywany na potrzeby przeszukiwania pelnotekstowego FTS5. */
   readonly rawOcrText?: string | null;
+  /** Liczba miesiecy gwarancji (domyslnie 24). */
   readonly warrantyMonths?: number;
+  /** Okno czasowe na zwrot w dniach (domyslnie 14). */
   readonly returnWindowDays?: number;
+  /** Tymczasowy URI zdjecia z aparatu do skopiowania do trwalego katalogu aplikacji. */
   readonly tempImageUri?: string | null;
 }
 
+/**
+ * Bezpieczny generator UUID v4 odporny na srodowiska mobilne (Expo / React Native / Node).
+ *
+ * @returns Losowy identyfikator UUID w standardowym formacie v4.
+ */
 function generateUuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -32,7 +51,25 @@ function generateUuid(): string {
   });
 }
 
+/**
+ * Przypadek uzycia: Trwaly zapis dokumentu (SaveDocumentUseCase).
+ *
+ * Realizuje orkiestracje zapisu biznesowego:
+ * 1. Generuje unikalny UUID dokumentu.
+ * 2. Kopiuje i utrwala zdjecie w odizolowanym katalogu aplikacji (`FileStorageService`).
+ * 3. Zapewnia istnienie rekordu sklepu w bazie (`StoreRepository`).
+ * 4. Zapisuje dokument do relacyjnej bazy SQLite (`DocumentRepository`), co wyzwala indeks FTS5.
+ * 5. Wylicza terminy gwarancyjne i planuje lokalne powiadomienia alarmowe (`NotificationService`).
+ */
 export class SaveDocumentUseCase {
+  /**
+   * Tworzy instancje orkiestratora zapisu dokumentu.
+   *
+   * @param documentRepo Repozytorium dokumentow SQLite.
+   * @param storeRepo Repozytorium sklepow.
+   * @param storageService Serwis magazynu plikow na dysku urzadzenia.
+   * @param notificationService Opcjonalny serwis powiadomien lokalnych.
+   */
   constructor(
     private readonly documentRepo: DocumentRepository,
     private readonly storeRepo: StoreRepository,
@@ -40,6 +77,12 @@ export class SaveDocumentUseCase {
     private readonly notificationService?: NotificationService
   ) {}
 
+  /**
+   * Wykonuje transakcyjny proces utrwalenia dokumentu.
+   *
+   * @param input Zweryfikowane dane dokumentu.
+   * @returns Unikalny identyfikator UUID zapisanego dokumentu.
+   */
   async execute(input: SaveDocumentInput): Promise<string> {
     const docId = generateUuid();
     let persistentImagePath: string | null = null;
@@ -73,7 +116,6 @@ export class SaveDocumentUseCase {
       primaryImagePath: persistentImagePath,
     });
 
-    // Automatyczne planowanie lokalnych przypomnien o koncu gwarancji i zwrotu
     if (this.notificationService) {
       const calculation = WarrantyCalculator.calculate({
         purchaseDate: input.purchaseDate,

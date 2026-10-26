@@ -34,6 +34,17 @@ const WARRANTY_OPTIONS = [
   { label: '60 m-cy (5 lat)', months: 60 },
 ];
 
+/**
+ * ScanScreen - Ekran akwizycji i weryfikacji paragonu.
+ *
+ * Umozliwia uzytkownikowi:
+ * 1. Wykonanie zdjecia paragonu aparatem lub wybor z galerii urzadzenia.
+ * 2. Przetworzenie obrazu przez silnik ML Kit OCR (ekstrakcja tekstu na urzadzeniu).
+ * 3. Parsowanie tekstu za pomoca heurystyk paragonowych (kwota, data, sklep, NIP).
+ * 4. Interaktywna weryfikacje i ewentualna korekte wyekstrahowanych metadanych.
+ * 5. Zapisanie dokumentu do bazy SQLite oraz skopiowanie zdjecia do trwalego magazynu.
+ * 6. Zaplanowanie powiadomien o wygasajacej gwarancji w systemie lokalnym.
+ */
 export default function ScanScreen() {
   const router = useRouter();
 
@@ -281,17 +292,17 @@ export default function ScanScreen() {
           <View style={styles.badgesRow}>
             <View style={[styles.badge, detectedConfidence.hasAmount ? styles.badgeSuccess : styles.badgeWarn]}>
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasAmount ? '✓ Kwota wykryta' : '⚠️ Sprawdz kwote'}
+                {detectedConfidence.hasAmount ? 'Kwota zweryfikowana' : 'Do weryfikacji: kwota'}
               </Text>
             </View>
             <View style={[styles.badge, detectedConfidence.hasDate ? styles.badgeSuccess : styles.badgeWarn]}>
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasDate ? '✓ Data wykryta' : '⚠️ Sprawdz date'}
+                {detectedConfidence.hasDate ? 'Data zweryfikowana' : 'Do weryfikacji: data'}
               </Text>
             </View>
             <View style={[styles.badge, detectedConfidence.hasStore ? styles.badgeSuccess : styles.badgeNeutral]}>
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasStore ? '✓ Sklep wykryty' : 'Sklep opcjonalny'}
+                {detectedConfidence.hasStore ? 'Sklep zweryfikowany' : 'Sklep opcjonalny'}
               </Text>
             </View>
           </View>

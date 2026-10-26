@@ -1,9 +1,24 @@
 import { SqlDatabase } from '../connection';
 import { StoreRow } from '../types';
 
+/**
+ * Repozytorium zarzadzania punktami handlowymi i sprzedawcami (StoreRepository).
+ * Zapewnia deduplikacje i tworzenie rekordow na podstawie rozpoznanych paragonow.
+ */
 export class StoreRepository {
+  /**
+   * Inicjalizuje repozytorium sklepow.
+   *
+   * @param db Polaczenie bazy danych `SqlDatabase`.
+   */
   constructor(private readonly db: SqlDatabase) {}
 
+  /**
+   * Wyszukuje sklep po nazwie bez rozrozniania wielkosci liter (case-insensitive).
+   *
+   * @param name Nazwa sieci handlowej lub sklepu.
+   * @returns Znaleziony rekord lub null.
+   */
   async findByName(name: string): Promise<StoreRow | null> {
     const trimmed = name.trim();
     if (!trimmed) return null;
@@ -15,6 +30,14 @@ export class StoreRepository {
     return result ?? null;
   }
 
+  /**
+   * Pobiera istniejacy sklep lub tworzy nowy rekord, jesli dany punkt jeszcze nie istnieje.
+   * W razie potrzeby uzupelnia brakujacy NIP sprzedawcy.
+   *
+   * @param name Nazwa sklepu.
+   * @param taxId Opcjonalny 10-cyfrowy NIP.
+   * @returns Rekord istniejacego badz nowo utworzonego sklepu.
+   */
   async findOrCreateByName(name: string, taxId?: string | null): Promise<StoreRow> {
     const trimmed = name.trim();
     const existing = await this.findByName(trimmed);
@@ -43,6 +66,11 @@ export class StoreRepository {
     return created;
   }
 
+  /**
+   * Zwraca pelna liste sklepow posortowana alfabetycznie.
+   *
+   * @returns Tablica wszystkich zarejestrowanych sklepow.
+   */
   async listStores(): Promise<StoreRow[]> {
     return this.db.getAllAsync<StoreRow>(
       'SELECT id, name, tax_id, default_return_days, website_url, created_at FROM stores ORDER BY name ASC;'

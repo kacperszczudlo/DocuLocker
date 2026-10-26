@@ -20,12 +20,16 @@ type FilterTab = 'ALL' | WarrantyStatus;
 
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'ALL', label: 'Wszystkie' },
-  { key: 'EXPIRING_SOON', label: 'Wygasające' },
+  { key: 'EXPIRING_SOON', label: 'Wygasajace' },
   { key: 'ACTIVE', label: 'Aktywne' },
-  { key: 'EXPIRED', label: 'Wygasłe' },
+  { key: 'EXPIRED', label: 'Wygasle' },
   { key: 'CLAIMED', label: 'Reklamowane' },
 ];
 
+/**
+ * Ekran zarzadzania terminami rekojmi, gwarancji i zwrotow towaru.
+ * Umozliwia filtrowanie wedlug statusow oraz rejestracje notatek serwisowych.
+ */
 export default function WarrantiesScreen() {
   const router = useRouter();
   const [items, setItems] = useState<WarrantyItemWithDetails[]>([]);
@@ -95,7 +99,7 @@ export default function WarrantiesScreen() {
       setClaimModalVisible(false);
       setSelectedItemForClaim(null);
       await loadWarranties();
-      Alert.alert('Zapisano', 'Status gwarancji zmieniony na "W trakcie reklamacji".');
+      Alert.alert('Zapisano', 'Status zmieniony na "W trakcie reklamacji".');
     } catch (err) {
       console.error('[DocuLocker] Blad zapisu reklamacji:', err);
       Alert.alert('Blad', 'Nie udalo sie zaktualizowac statusu reklamacji.');
@@ -108,7 +112,7 @@ export default function WarrantiesScreen() {
       const repo = new WarrantyRepository(db);
       await repo.restoreWarrantyStatus(item.document_id);
       await loadWarranties();
-      Alert.alert('Sukces', 'Przywrócono standardowy status ochrony.');
+      Alert.alert('Sukces', 'Przywrocono standardowy status ochrony.');
     } catch (err) {
       console.error('[DocuLocker] Blad przywracania statusu:', err);
     }
@@ -174,7 +178,7 @@ export default function WarrantiesScreen() {
               ]}
             />
           </View>
-          <Text style={styles.progressText}>{calc.progressPercentage}% czasu upłynęło</Text>
+          <Text style={styles.progressText}>{calc.progressPercentage}% okresu uplynelo</Text>
         </View>
 
         {/* Sekcja szczegolow terminow */}
@@ -193,29 +197,25 @@ export default function WarrantiesScreen() {
 
         {/* Informacja o oknie zwrotu */}
         <View style={styles.returnRow}>
-          <Text style={styles.returnIcon}>🔄</Text>
           <Text style={styles.returnText}>
-            Prawo zwrotu do {item.return_deadline}{' '}
+            Termin zwrotu: {item.return_deadline}{' '}
             {calc.returnStatus === 'CAN_RETURN' ? (
               <Text style={styles.returnActiveText}>(jeszcze {calc.returnDaysRemaining} dni)</Text>
             ) : (
-              <Text style={styles.returnExpiredText}>(termin minął)</Text>
+              <Text style={styles.returnExpiredText}>(termin minal)</Text>
             )}
           </Text>
         </View>
 
-        {/* Notatka reklamacyjna z pelnym tlem i ikona (zgodnie z impeccable - no side-stripe) */}
+        {/* Notatka reklamacyjna z pelnym tlem */}
         {item.claim_notes && (
           <View style={styles.claimNoteBox}>
-            <View style={styles.claimNoteHeader}>
-              <Text style={styles.claimNoteIcon}>📋</Text>
-              <Text style={styles.claimNoteLabel}>Notatka reklamacyjna / serwis:</Text>
-            </View>
+            <Text style={styles.claimNoteLabel}>Notatka reklamacyjna:</Text>
             <Text style={styles.claimNoteText}>{item.claim_notes}</Text>
           </View>
         )}
 
-        {/* Przyciski akcji na karcie - minHeight 44dp */}
+        {/* Przyciski akcji na karcie */}
         <View style={styles.actionsRow}>
           {item.status === 'CLAIMED' ? (
             <TouchableOpacity
@@ -223,10 +223,10 @@ export default function WarrantiesScreen() {
               onPress={() => handleRestoreStatus(item)}
               activeOpacity={touchTargets.activeOpacity}
               accessibilityRole="button"
-              accessibilityLabel="Zakończ proces reklamacji"
+              accessibilityLabel="Zakoncz proces reklamacji"
               hitSlop={touchTargets.minHitSlop}
             >
-              <Text style={styles.restoreBtnText}>Zakończ reklamację</Text>
+              <Text style={styles.restoreBtnText}>Zakoncz reklamacje</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -234,10 +234,10 @@ export default function WarrantiesScreen() {
               onPress={() => handleOpenClaimModal(item)}
               activeOpacity={touchTargets.activeOpacity}
               accessibilityRole="button"
-              accessibilityLabel="Zgłoś usterkę lub reklamację"
+              accessibilityLabel="Zglos usterke lub reklamacje"
               hitSlop={touchTargets.minHitSlop}
             >
-              <Text style={styles.claimBtnText}>Zgłoś reklamację / serwis</Text>
+              <Text style={styles.claimBtnText}>Zglos reklamacje</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -249,9 +249,9 @@ export default function WarrantiesScreen() {
     <View style={styles.container}>
       {/* Naglowek modulu */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Strażnik Gwarancji</Text>
+        <Text style={styles.headerTitle}>Straznik Gwarancji</Text>
         <Text style={styles.headerSubtitle}>
-          Lokalny monitoring terminów rękojmi i zwrotów
+          Lokalny rejestr terminow rekojmi i zwrotow
         </Text>
       </View>
 
@@ -272,9 +272,9 @@ export default function WarrantiesScreen() {
             style={styles.clearSearchBtn}
             hitSlop={touchTargets.minHitSlop}
             accessibilityRole="button"
-            accessibilityLabel="Wyczyść pole wyszukiwania"
+            accessibilityLabel="Wyczysc pole wyszukiwania"
           >
-            <Text style={styles.clearSearchText}>✕</Text>
+            <Text style={styles.clearSearchText}>Wyczysc</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -325,12 +325,11 @@ export default function WarrantiesScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🛡️</Text>
-            <Text style={styles.emptyTitle}>Brak pozycji na liście</Text>
+            <Text style={styles.emptyTitle}>Brak pozycji na liscie</Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery
-                ? 'Brak paragonów spełniających wybrane kryteria wyszukiwania.'
-                : 'Zeskanuj paragon ze sklepu, aby automatycznie monitorować termin upływu rękojmi.'}
+                ? 'Brak paragonow spelniajacych wybrane kryteria wyszukiwania.'
+                : 'Zeskanuj paragon ze sklepu, aby monitorowac termin uplywu rekojmi.'}
             </Text>
             <TouchableOpacity
               style={styles.scanActionBtn}
@@ -354,14 +353,14 @@ export default function WarrantiesScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Zgłoszenie reklamacyjne</Text>
+            <Text style={styles.modalTitle}>Zgloszenie reklamacyjne</Text>
             <Text style={styles.modalProduct}>{selectedItemForClaim?.title}</Text>
             <Text style={styles.modalDesc}>
-              Wpisz notatkę (np. powód usterki, numer RMA ze sklepu lub datę przekazania do serwisu):
+              Wpisz notatke (np. opis usterki, numer RMA ze sklepu lub date przekazania do serwisu):
             </Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="np. Hałasujące łożysko, zgłoszenie serwisowe #10492"
+              placeholder="np. Halasujace lozysko, zgloszenie serwisowe #10492"
               placeholderTextColor={colors.textMuted}
               value={claimNotes}
               onChangeText={setClaimNotes}
@@ -440,8 +439,8 @@ const styles = StyleSheet.create({
   },
   clearSearchText: {
     color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '600',
   },
   filtersContainer: {
     marginBottom: spacing.sm,
@@ -601,13 +600,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   returnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     marginBottom: spacing.sm,
-  },
-  returnIcon: {
-    fontSize: 12,
   },
   returnText: {
     color: colors.textSecondary,
@@ -628,19 +621,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     marginBottom: spacing.sm,
   },
-  claimNoteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
-  },
-  claimNoteIcon: {
-    fontSize: 12,
-  },
   claimNoteLabel: {
     color: colors.primaryLight,
     fontSize: 11,
     fontWeight: '700',
+    marginBottom: 2,
   },
   claimNoteText: {
     color: colors.textPrimary,
@@ -690,10 +675,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.lg,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing.md,
   },
   emptyTitle: {
     color: colors.textPrimary,

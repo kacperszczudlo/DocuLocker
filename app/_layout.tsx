@@ -8,6 +8,15 @@ import { colors, spacing, typography } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+/**
+ * Glowny uklad nawigacyjny aplikacji (RootLayout).
+ *
+ * Odpowiada za:
+ * - Blokowanie automatycznego ukrywania Splash Screena do czasu zakonczenia bootstrapu.
+ * - Inicjalizacje bazy danych SQLite (migracje, triggery FTS5, indeksy).
+ * - Renderowanie fallbacku ladowania oraz obslugi krytycznych bledow startowych.
+ * - Definicje glownego stosu nawigacyjnego (Stack) z ekranami modalnymi.
+ */
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);

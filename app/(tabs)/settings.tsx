@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
+import { colors, spacing, radii, touchTargets } from '@/theme/tokens';
 
+/**
+ * Ekran ustawien oraz informacji o architekturze bezpieczenstwa i parametrach prawnych.
+ */
 export default function SettingsScreen() {
   const handlePrivacyInfo = () => {
     Alert.alert(
-      'Manifest Prywatności Zero-Data',
-      'DocuLocker nie posiada serwera ani konta w chmurze. Wszystkie Twoje paragony, zdjęcia, notatki oraz kwoty są szyfrowane w piaskownicy Twojego urządzenia i nigdy go nie opuszczają.'
+      'Manifest Prywatnosci Zero-Data',
+      'DocuLocker nie posiada serwera ani konta w chmurze. Wszystkie Twoje paragony, zdjecia, notatki oraz kwoty sa szyfrowane w piaskownicy Twojego urzadzenia i nigdy go nie opuszczaja.'
     );
   };
 
@@ -14,60 +17,56 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Karta Manifestu Zero-Data */}
       <View style={styles.manifestCard}>
-        <Text style={styles.manifestIcon}>🛡️</Text>
-        <Text style={styles.manifestTitle}>Manifest Zero-Data & Anti-Cloud</Text>
+        <Text style={styles.manifestTitle}>Manifest Zero-Data</Text>
         <Text style={styles.manifestText}>
-          Twoje dane finansowe i paragony należą wyłącznie do Ciebie. DocuLocker działa w 100% w trybie offline — brak serwerów pośredniczących, brak subskrypcji i brak śledzenia.
+          Dane finansowe i paragony naleza wylacznie do Ciebie. DocuLocker dziala w 100% w trybie offline: brak serwerow posredniczacych, brak subskrypcji i brak telemetrii.
         </Text>
         <TouchableOpacity
           style={styles.manifestBtn}
           onPress={handlePrivacyInfo}
           activeOpacity={touchTargets.activeOpacity}
           accessibilityRole="button"
-          accessibilityLabel="Więcej informacji o prywatności"
+          accessibilityLabel="Szczegoly ochrony danych"
         >
-          <Text style={styles.manifestBtnText}>Szczegóły ochrony danych</Text>
+          <Text style={styles.manifestBtnText}>Szczegoly ochrony danych</Text>
         </TouchableOpacity>
       </View>
 
       {/* Sekcja Architektury */}
-      <Text style={styles.sectionHeader}>Architektura Bezpieczeństwa</Text>
+      <Text style={styles.sectionHeader}>Architektura Bezpieczenstwa</Text>
       <View style={styles.card}>
         <View style={styles.itemRow}>
-          <Text style={styles.itemIcon}>💾</Text>
           <View style={styles.itemContent}>
             <Text style={styles.itemTitle}>Lokalny magazyn SQLite</Text>
-            <Text style={styles.itemDesc}>Indeksacja FTS5, relacyjna baza bez dostępu do sieci</Text>
+            <Text style={styles.itemDesc}>Indeksacja FTS5, relacyjna baza bez dostepu do sieci</Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.itemRow}>
-          <Text style={styles.itemIcon}>🧠</Text>
           <View style={styles.itemContent}>
             <Text style={styles.itemTitle}>Edge AI OCR (Google ML Kit)</Text>
-            <Text style={styles.itemDesc}>Rozpoznawanie tekstu odbywa się lokalnie na procesorze telefonu</Text>
+            <Text style={styles.itemDesc}>Rozpoznawanie tekstu odbywa sie lokalnie na procesorze telefonu</Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.itemRow}>
-          <Text style={styles.itemIcon}>🔔</Text>
           <View style={styles.itemContent}>
             <Text style={styles.itemTitle}>Lokalne alarmy Androida</Text>
-            <Text style={styles.itemDesc}>Powiadomienia na 30 i 7 dni przed upływem gwarancji</Text>
+            <Text style={styles.itemDesc}>Powiadomienia na 30 i 7 dni przed uplywem gwarancji</Text>
           </View>
         </View>
       </View>
 
-      {/* Domyślne Parametry */}
-      <Text style={styles.sectionHeader}>Parametry Prawne i Ochrony</Text>
+      {/* Domyslne Parametry */}
+      <Text style={styles.sectionHeader}>Parametry Prawne</Text>
       <View style={styles.card}>
         <View style={styles.paramRow}>
-          <Text style={styles.paramLabel}>Standardowa rękojmia konsumencka:</Text>
-          <Text style={styles.paramValue}>24 miesiące</Text>
+          <Text style={styles.paramLabel}>Standardowa rekojmia konsumencka:</Text>
+          <Text style={styles.paramValue}>24 miesiace</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.paramRow}>
@@ -76,7 +75,7 @@ export default function SettingsScreen() {
         </View>
         <View style={styles.divider} />
         <View style={styles.paramRow}>
-          <Text style={styles.paramLabel}>Godzina porannych powiadomień:</Text>
+          <Text style={styles.paramLabel}>Godzina porannych powiadomien:</Text>
           <Text style={styles.paramValue}>10:00</Text>
         </View>
       </View>
@@ -91,11 +90,11 @@ export default function SettingsScreen() {
         <View style={styles.divider} />
         <View style={styles.paramRow}>
           <Text style={styles.paramLabel}>Silnik bazy:</Text>
-          <Text style={styles.paramValue}>SQLite + FTS5 (Schema v1)</Text>
+          <Text style={styles.paramValue}>SQLite FTS5 (Schema v1)</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.paramRow}>
-          <Text style={styles.paramLabel}>Środowisko:</Text>
+          <Text style={styles.paramLabel}>Srodowisko:</Text>
           <Text style={styles.paramValue}>React Native / Expo SDK 54</Text>
         </View>
       </View>
@@ -120,10 +119,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
-  },
-  manifestIcon: {
-    fontSize: 40,
-    marginBottom: spacing.sm,
   },
   manifestTitle: {
     color: colors.textPrimary,
@@ -172,10 +167,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.xs,
-  },
-  itemIcon: {
-    fontSize: 22,
-    marginRight: spacing.md,
   },
   itemContent: {
     flex: 1,
