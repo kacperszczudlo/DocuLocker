@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { getDatabase } from '@/database/connection';
+import { setupNotificationChannels } from '@/services/notifications/notificationService';
 import * as SplashScreen from 'expo-splash-screen';
 import { colors, spacing, typography } from '@/theme/tokens';
 
@@ -25,6 +26,7 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await getDatabase();
+        await setupNotificationChannels();
         setIsReady(true);
         await SplashScreen.hideAsync();
       } catch (err) {

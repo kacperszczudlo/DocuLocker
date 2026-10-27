@@ -47,6 +47,10 @@ export interface ParsedReceiptData {
   readonly suggestedTitle: string;
   /** Rozpoznana marka lub nazwa sieci handlowej (null jesli nie wykryto w bazie). */
   readonly storeName: string | null;
+  /** Sugerowana kategoria wydatku (nazwa zgodna z seedem) lub null. */
+  readonly suggestedCategoryName: string | null;
+  /** Sugerowane okno zwrotu w dniach dla rozpoznanej sieci lub null. */
+  readonly suggestedReturnDays: number | null;
   /** Rozpoznana kwota koncowa transakcji (suma fiskalna). */
   readonly totalAmount: ParsedAmount | null;
   /** Rozpoznana data zakupu. */

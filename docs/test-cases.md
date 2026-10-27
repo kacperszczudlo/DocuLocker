@@ -40,6 +40,13 @@ Zestawienie testów automatycznych i manualnych dla aplikacji DocuLocker.
   * 03.3: Okno zwrotu: zakup 2026-10-01, 14 dni -> ostateczny termin zwrotu 2026-10-15.
   * 03.4: Weryfikacja statusu w zależności od bieżącej daty (ACTIVE, EXPIRING_SOON, EXPIRED).
 
+### TC-UNIT-04: Benchmark referencyjny polskiego rynku fiskalnego (60 przypadków)
+
+* Moduł testowany: tests/parsers/datasetBenchmark.test.ts
+* Zbiór referencyjny: test_dataset/ground_truth.json
+* Zakres: 60 realnych paragonów i faktur z 40+ sieci handlowych w Polsce (Biedronka, Lidl, Dino, Kaufland, Castorama, Media Expert, Zara, Rossmann, Orlen i inne)
+* Weryfikacja: 100% zgodności dla identyfikacji sklepu, kwoty całkowitej (PLN/EUR), daty ISO oraz NIP sprzedawcy z odpornością na błędy OCR glifów (O/0, I/1, S/5).
+
 ## 2. Testy integracyjne bazy danych (SQLite)
 
 ### TC-INT-01: Integralność relacyjna i kaskadowe usuwanie
