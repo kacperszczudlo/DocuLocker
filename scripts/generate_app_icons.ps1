@@ -1,29 +1,35 @@
 Add-Type -AssemblyName System.Drawing
 
-function Generate-DocuLockerIcon {
+function Generate-DocuLockerGraphic {
     param(
-        [string]$OutputPath,
-        [int]$Size = 1024,
-        [bool]$IsAdaptive = $false
+        [System.Drawing.Graphics]$g,
+        [int]$Size,
+        [bool]$IsRound = $false,
+        [bool]$IsTransparentBg = $false,
+        [string]$BgHex = "#0F172A"
     )
 
-    $bmp = [System.Drawing.Bitmap]::new($Size, $Size)
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 
-    $navyBg = [System.Drawing.ColorTranslator]::FromHtml("#0B1938")
+    $navyBg = [System.Drawing.ColorTranslator]::FromHtml($BgHex)
     $navyDark = [System.Drawing.ColorTranslator]::FromHtml("#061226")
     $docWhite = [System.Drawing.ColorTranslator]::FromHtml("#FFFFFF")
     $docFold = [System.Drawing.ColorTranslator]::FromHtml("#CBD5E1")
     $docFoldDark = [System.Drawing.ColorTranslator]::FromHtml("#94A3B8")
     $electricBlue = [System.Drawing.ColorTranslator]::FromHtml("#007BFF")
     $electricBlueDark = [System.Drawing.ColorTranslator]::FromHtml("#0056B3")
-    $shadowColor = [System.Drawing.Color]::FromArgb(70, 4, 12, 28)
+    $shadowColor = [System.Drawing.Color]::FromArgb(60, 4, 12, 28)
 
-    # 1. Background
-    if ($IsAdaptive) {
+    if ($IsRound) {
+        $path = [System.Drawing.Drawing2D.GraphicsPath]::new()
+        $path.AddEllipse(0, 0, $Size, $Size)
+        $g.SetClip($path)
+        $bgBrush = [System.Drawing.SolidBrush]::new($navyBg)
+        $g.FillEllipse($bgBrush, 0, 0, $Size, $Size)
+        $bgBrush.Dispose()
+    } elseif ($IsTransparentBg) {
         $g.Clear([System.Drawing.Color]::Transparent)
     } else {
         $bgBrush = [System.Drawing.SolidBrush]::new($navyBg)
@@ -33,7 +39,7 @@ function Generate-DocuLockerIcon {
 
     $scale = $Size / 1024.0
 
-    # 2. Rysowanie dokumentu
+    # 1. Rysowanie dokumentu
     $docX = [float](250.0 * $scale)
     $docY = [float](190.0 * $scale)
     $docW = [float](420.0 * $scale)
@@ -42,7 +48,7 @@ function Generate-DocuLockerIcon {
     $docRadius = [float](32.0 * $scale)
 
     # Cien za dokumentem
-    $shadowOffset = [float](22.0 * $scale)
+    $shadowOffset = [float](20.0 * $scale)
     $shadowBrush = [System.Drawing.SolidBrush]::new($shadowColor)
     [System.Drawing.PointF[]]$shadowPoints = @(
         [System.Drawing.PointF]::new($docX + $shadowOffset, $docY + $shadowOffset),
@@ -54,7 +60,7 @@ function Generate-DocuLockerIcon {
     $g.FillPolygon($shadowBrush, $shadowPoints)
     $shadowBrush.Dispose()
 
-    # Cialo dokumentu (wielokat z zaokragleniami)
+    # Cialo dokumentu
     $docPath = [System.Drawing.Drawing2D.GraphicsPath]::new()
     $docPath.AddLine($docX + $docRadius, $docY, $docX + $docW - $foldSize, $docY)
     $docPath.AddLine($docX + $docW - $foldSize, $docY, $docX + $docW, $docY + $foldSize)
@@ -95,7 +101,7 @@ function Generate-DocuLockerIcon {
     $g.FillRectangle($lineBrush, [float]($docX + 50.0 * $scale), [float]($docY + 240.0 * $scale), [float](180.0 * $scale), [float](20.0 * $scale))
     $lineBrush.Dispose()
 
-    # 3. Bold Electric Blue Padlock Clasp
+    # 2. Klodka (Padlock)
     $lockX = [float](490.0 * $scale)
     $lockY = [float](500.0 * $scale)
     $lockW = [float](280.0 * $scale)
@@ -104,7 +110,7 @@ function Generate-DocuLockerIcon {
 
     # Cien klodki
     $lockShadowBrush = [System.Drawing.SolidBrush]::new($shadowColor)
-    $g.FillRectangle($lockShadowBrush, [float]($lockX + 16.0 * $scale), [float]($lockY + 16.0 * $scale), $lockW, $lockH)
+    $g.FillRectangle($lockShadowBrush, [float]($lockX + 14.0 * $scale), [float]($lockY + 14.0 * $scale), $lockW, $lockH)
     $lockShadowBrush.Dispose()
 
     # Palak klodki (Shackle)
@@ -112,7 +118,7 @@ function Generate-DocuLockerIcon {
     $shackleH = [float](150.0 * $scale)
     $shackleX = [float]($lockX + ($lockW - $shackleW) / 2.0)
     $shackleY = [float]($lockY - $shackleH + (30.0 * $scale))
-    $shackleThick = [float](40.0 * $scale)
+    $shackleThick = [float](38.0 * $scale)
 
     $shacklePen = [System.Drawing.Pen]::new($electricBlueDark, $shackleThick)
     $shacklePen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
@@ -137,15 +143,12 @@ function Generate-DocuLockerIcon {
 
     # Dziurka od klucza
     $keyholeBrush = [System.Drawing.SolidBrush]::new($navyDark)
-    
     $keyCenterX = [float]($lockX + $lockW / 2.0)
     $keyCenterY = [float]($lockY + $lockH * 0.44)
     $keyRadius = [float](22.0 * $scale)
 
-    # Kolko dziurki
     $g.FillEllipse($keyholeBrush, [float]($keyCenterX - $keyRadius), [float]($keyCenterY - $keyRadius), [float]($keyRadius * 2), [float]($keyRadius * 2))
 
-    # Dolny trapez dziurki
     [System.Drawing.PointF[]]$trapPoints = @(
         [System.Drawing.PointF]::new($keyCenterX - 12.0 * $scale, $keyCenterY),
         [System.Drawing.PointF]::new($keyCenterX + 12.0 * $scale, $keyCenterY),
@@ -154,18 +157,73 @@ function Generate-DocuLockerIcon {
     )
     $g.FillPolygon($keyholeBrush, $trapPoints)
     $keyholeBrush.Dispose()
-
-    $g.Dispose()
-    $bmp.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
-    $bmp.Dispose()
-    Write-Host "Generated icon at: $OutputPath"
 }
 
-# Generowanie icon.png (1024x1024)
-Generate-DocuLockerIcon -OutputPath "c:\Users\kacpe\Documents\GitHub\DocuLocker\assets\icon.png" -Size 1024 -IsAdaptive $false
+function Save-ImageToFile {
+    param(
+        [string]$Path,
+        [int]$Width,
+        [int]$Height,
+        [bool]$IsRound = $false,
+        [bool]$IsTransparent = $false,
+        [string]$BgHex = "#0F172A"
+    )
+    $dir = Split-Path -Parent $Path
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
 
-# Generowanie adaptive-icon.png (1024x1024 foreground)
-Generate-DocuLockerIcon -OutputPath "c:\Users\kacpe\Documents\GitHub\DocuLocker\assets\adaptive-icon.png" -Size 1024 -IsAdaptive $true
+    $bmp = [System.Drawing.Bitmap]::new($Width, $Height)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    Generate-DocuLockerGraphic -g $g -Size $Width -IsRound $IsRound -IsTransparentBg $IsTransparent -BgHex $BgHex
+    $g.Dispose()
+    $bmp.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bmp.Dispose()
+    Write-Host "Created: $Path ($Width x $Height)"
+}
 
-# Generowanie splash-icon.png (1024x1024)
-Generate-DocuLockerIcon -OutputPath "c:\Users\kacpe\Documents\GitHub\DocuLocker\assets\splash-icon.png" -Size 1024 -IsAdaptive $false
+$rootDir = "c:\Users\kacpe\Documents\GitHub\DocuLocker"
+
+# 1. Assets Expo
+Save-ImageToFile -Path "$rootDir\assets\icon.png" -Width 1024 -Height 1024 -IsRound $false -IsTransparent $false
+Save-ImageToFile -Path "$rootDir\assets\adaptive-icon.png" -Width 1024 -Height 1024 -IsRound $false -IsTransparent $true
+Save-ImageToFile -Path "$rootDir\assets\splash-icon.png" -Width 1024 -Height 1024 -IsRound $false -IsTransparent $true
+
+# 2. Android Mipmaps
+$densities = @{
+    "mipmap-mdpi"    = @{ Icon = 48;  Fg = 108 }
+    "mipmap-hdpi"    = @{ Icon = 72;  Fg = 162 }
+    "mipmap-xhdpi"   = @{ Icon = 96;  Fg = 216 }
+    "mipmap-xxhdpi"  = @{ Icon = 144; Fg = 324 }
+    "mipmap-xxxhdpi" = @{ Icon = 192; Fg = 432 }
+}
+
+foreach ($d in $densities.Keys) {
+    $folder = "$rootDir\android\app\src\main\res\$d"
+    $iconSize = $densities[$d].Icon
+    $fgSize = $densities[$d].Fg
+
+    # Usun stare stubs .webp aby nie kolidowaly z nowymi .png
+    Get-ChildItem -Path $folder -Filter "*.webp" -ErrorAction SilentlyContinue | Remove-Item -Force
+
+    Save-ImageToFile -Path "$folder\ic_launcher.png" -Width $iconSize -Height $iconSize -IsRound $false -IsTransparent $false
+    Save-ImageToFile -Path "$folder\ic_launcher_round.png" -Width $iconSize -Height $iconSize -IsRound $true -IsTransparent $false
+    Save-ImageToFile -Path "$folder\ic_launcher_foreground.png" -Width $fgSize -Height $fgSize -IsRound $false -IsTransparent $true
+}
+
+# 3. Android Splashscreen Drawables
+$splashDensities = @{
+    "drawable-mdpi"    = 128
+    "drawable-hdpi"    = 192
+    "drawable-xhdpi"   = 256
+    "drawable-xxhdpi"  = 384
+    "drawable-xxxhdpi" = 512
+}
+
+foreach ($d in $splashDensities.Keys) {
+    $folder = "$rootDir\android\app\src\main\res\$d"
+    $splashSize = $splashDensities[$d]
+    Save-ImageToFile -Path "$folder\splashscreen_logo.png" -Width $splashSize -Height $splashSize -IsRound $false -IsTransparent $true
+}
+
+Write-Host "All Android icons and splash images successfully generated!"

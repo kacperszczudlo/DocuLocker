@@ -62,37 +62,23 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       {/* Karta Statystyk i Bezpieczeństwa Sejfu */}
       <View style={styles.statsCard}>
-        <View style={styles.statsCardLeft}>
-          <View style={styles.vaultIconBadge}>
-            <Ionicons name="shield-checkmark" size={24} color={colors.primaryLight} />
-          </View>
-          <View style={styles.statsInfo}>
-            <View style={styles.offlineStatusRow}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statsLabel}>Lokalna Baza SQLite (Offline)</Text>
-            </View>
-            <Text style={styles.statsValue}>
-              {documents.length} {documents.length === 1 ? 'paragon' : 'paragonów'} w sejfie
-            </Text>
-            {documents.length > 0 && (
-              <Text style={styles.statsSubAmount}>
-                Suma wydatków: <Text style={styles.amountHighlight}>{totalSum.toFixed(2)} PLN</Text>
-              </Text>
-            )}
-          </View>
+        <View style={styles.vaultIconBadge}>
+          <Ionicons name="shield-checkmark" size={24} color={colors.primaryLight} />
         </View>
-
-        <TouchableOpacity
-          style={styles.quickAddBtn}
-          onPress={() => router.push('/scan')}
-          activeOpacity={touchTargets.activeOpacity}
-          accessibilityRole="button"
-          accessibilityLabel="Dodaj paragon do sejfu"
-          hitSlop={touchTargets.minHitSlop}
-        >
-          <Ionicons name="camera" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-          <Text style={styles.quickAddBtnText}>Dodaj</Text>
-        </TouchableOpacity>
+        <View style={styles.statsInfo}>
+          <View style={styles.offlineStatusRow}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statsLabel}>Lokalna Baza SQLite (Offline)</Text>
+          </View>
+          <Text style={styles.statsValue}>
+            {documents.length} {documents.length === 1 ? 'paragon' : 'paragonów'} w sejfie
+          </Text>
+          {documents.length > 0 && (
+            <Text style={styles.statsSubAmount}>
+              Suma wydatków: <Text style={styles.amountHighlight}>{totalSum.toFixed(2)} PLN</Text>
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Wybór kategorii */}
@@ -177,10 +163,10 @@ export default function DashboardScreen() {
             onPress={() => router.push('/scan')}
             activeOpacity={touchTargets.activeOpacity}
             accessibilityRole="button"
-            accessibilityLabel="Zeskanuj pierwszy paragon"
+            accessibilityLabel="Skanuj paragon"
           >
             <Ionicons name="camera" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text style={styles.emptyActionBtnText}>Zeskanuj pierwszy paragon</Text>
+            <Text style={styles.emptyActionBtnText}>Skanuj paragon</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -251,17 +237,19 @@ export default function DashboardScreen() {
         />
       )}
 
-      {/* Pływający przycisk akcji (FAB) zgodny z M3 */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/scan')}
-        activeOpacity={touchTargets.activeOpacity}
-        accessibilityRole="button"
-        accessibilityLabel="Zeskanuj paragon aparatem"
-      >
-        <Ionicons name="scan-outline" size={22} color="#FFFFFF" style={{ marginRight: 8 }} />
-        <Text style={styles.fabText}>Skanuj paragon</Text>
-      </TouchableOpacity>
+      {/* Jedyny, spójny przycisk akcji (FAB) - widoczny na ekranie z dokumentami */}
+      {documents.length > 0 && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => router.push('/scan')}
+          activeOpacity={touchTargets.activeOpacity}
+          accessibilityRole="button"
+          accessibilityLabel="Skanuj paragon"
+        >
+          <Ionicons name="camera" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+          <Text style={styles.fabText}>Skanuj paragon</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -281,15 +269,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     ...shadows.subtle,
-  },
-  statsCardLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: spacing.sm,
   },
   vaultIconBadge: {
     width: 44,
@@ -335,21 +316,6 @@ const styles = StyleSheet.create({
   amountHighlight: {
     color: colors.primaryLight,
     fontWeight: '700',
-  },
-  quickAddBtn: {
-    backgroundColor: colors.primary,
-    minHeight: 44,
-    paddingHorizontal: spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: radii.md,
-    ...shadows.subtle,
-  },
-  quickAddBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -498,7 +464,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   emptyTitle: {
     color: colors.textPrimary,

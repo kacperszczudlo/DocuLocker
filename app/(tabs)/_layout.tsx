@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, radii, iconSizes } from '@/theme/tokens';
 import { BrandLogo } from '@/components/BrandLogo';
 
@@ -12,8 +13,13 @@ import { BrandLogo } from '@/components/BrandLogo';
  * - Minimalny touch target 48dp na kontrolkę
  * - Prawdziwe wektorowe ikony z wyraźnym stanem aktywnym i nieaktywnym
  * - Wbudowany wektorowy logotyp w nagłówku aplikacji
+ * - Pełna obsługa Android Edge-to-Edge z dynamicznymi safe area insets
  */
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
+  const tabHeight = 60 + bottomInset;
+
   return (
     <Tabs
       screenOptions={{
@@ -21,7 +27,6 @@ export default function TabLayout() {
           backgroundColor: colors.background,
           borderBottomWidth: 1,
           borderBottomColor: colors.borderSubtle,
-          height: 64,
         },
         headerShadowVisible: false,
         headerTintColor: colors.textPrimary,
@@ -30,8 +35,8 @@ export default function TabLayout() {
           backgroundColor: '#0B1528', // Czysty deep navy zgodny z M3
           borderTopColor: colors.borderSubtle,
           borderTopWidth: 1,
-          height: 68,
-          paddingBottom: 10,
+          height: tabHeight,
+          paddingBottom: bottomInset,
           paddingTop: 8,
           elevation: 12,
           shadowColor: '#000',
@@ -54,7 +59,9 @@ export default function TabLayout() {
           title: 'Dokumenty',
           headerTitle: () => (
             <View style={styles.headerBrand}>
-              <BrandLogo size={28} variant="lock" />
+              <View style={styles.headerLogoBadge}>
+                <BrandLogo size={24} variant="lock" />
+              </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerAppTitle}>DocuLocker</Text>
                 <Text style={styles.headerAppSubtitle}>Lokalny Sejf Dokumentów</Text>
@@ -158,29 +165,44 @@ const styles = StyleSheet.create({
   headerBrand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm + 2,
+    gap: spacing.sm + 4,
+  },
+  headerLogoBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.md,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerIconCircle: {
-    width: 32,
-    height: 32,
+    width: 38,
+    height: 38,
     borderRadius: radii.md,
     backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTextContainer: {
     flexDirection: 'column',
+    justifyContent: 'center',
   },
   headerAppTitle: {
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.2,
+    lineHeight: 20,
   },
   headerAppSubtitle: {
     color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '500',
+    lineHeight: 14,
   },
   iconWrapper: {
     alignItems: 'center',

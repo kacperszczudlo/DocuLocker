@@ -22,11 +22,15 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   showBackground = false,
   style,
 }) => {
-  const viewBoxSize = 100;
+  const viewBox = showBackground
+    ? '0 0 100 100'
+    : variant === 'lock'
+      ? '24 18 58 64'
+      : '26 18 48 66';
 
   return (
     <View style={[{ width: size, height: size }, style]}>
-      <Svg width={size} height={size} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} fill="none">
+      <Svg width={size} height={size} viewBox={viewBox} fill="none">
         {showBackground && (
           // Squircle Background (M3 / HIG 2025 standard)
           <Rect
