@@ -13,16 +13,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { getDatabase } from '@/database/connection';
 import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { CategoryRepository } from '@/database/repositories/categoryRepository';
 import { DocumentWithDetails, CategoryRow } from '@/database/types';
 import { PdfGenerator, ComplaintData } from '@/services/pdf/pdfGenerator';
-import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
+import { colors, spacing, radii, typography, touchTargets, iconSizes, shadows, CATEGORY_ICON_MAP } from '@/theme/tokens';
+import { BrandLogo } from '@/components/BrandLogo';
 
 /**
- * Ekran wyszukiwania pelnotekstowego FTS5 w baze dokumentow SQLite.
- * Obsluguje filtrowanie po kategoriach, podglad skanow oraz generowanie pism PDF.
+ * Ekran wyszukiwania pełnotekstowego FTS5 w bazie dokumentów SQLite.
+ * Obsługuje filtrowanie po kategoriach z wektorowymi ikonami, podgląd skanów oraz generator wniosków PDF.
  */
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,7 +33,7 @@ export default function SearchScreen() {
   const [results, setResults] = useState<DocumentWithDetails[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Modal podgladu paragonu
+  // Modal podglądu paragonu
   const [previewDoc, setPreviewDoc] = useState<DocumentWithDetails | null>(null);
 
   // Modal generatora PDF
@@ -53,7 +55,7 @@ export default function SearchScreen() {
       const cats = await catRepo.listCategories();
       setCategories(cats);
     } catch (err) {
-      console.error('[DocuLocker] Blad ladowania kategorii:', err);
+      console.error('[DocuLocker] Błąd ładowania kategorii:', err);
     }
   }, []);
 
@@ -65,7 +67,7 @@ export default function SearchScreen() {
       const docs = await docRepo.searchFullText(query, catId);
       setResults(docs);
     } catch (err) {
-      console.error('[DocuLocker] Blad wyszukiwania FTS5:', err);
+      console.error('[DocuLocker] Błąd wyszukiwania FTS5:', err);
     } finally {
       setIsSearching(false);
     }
@@ -99,11 +101,11 @@ export default function SearchScreen() {
   const handleGeneratePdf = async () => {
     if (!complaintDoc) return;
     if (!consumerName.trim()) {
-      Alert.alert('Wymagane pole', 'Wpisz imie i nazwisko konsumenta.');
+      Alert.alert('Wymagane pole', 'Wpisz imię i nazwisko konsumenta.');
       return;
     }
     if (!defectDescription.trim()) {
-      Alert.alert('Wymagane pole', 'Wprowadz opis stwierdzonej usterki.');
+      Alert.alert('Wymagane pole', 'Wprowadź opis stwierdzonej usterki.');
       return;
     }
 
@@ -132,8 +134,8 @@ export default function SearchScreen() {
       await generator.generateAndShareComplaintPdf(complaintData);
       setComplaintDoc(null);
     } catch (err) {
-      console.error('[DocuLocker] Blad generowania PDF:', err);
-      Alert.alert('Blad', 'Nie udalo sie wygenerowac lub udostepnic pliku PDF.');
+      console.error('[DocuLocker] Błąd generowania PDF:', err);
+      Alert.alert('Błąd', 'Nie udało się wygenerować lub udostępnić pliku PDF.');
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -155,13 +157,28 @@ export default function SearchScreen() {
     return snippet;
   };
 
+  const getCategoryMeta = (catName?: string | null) => {
+    if (!catName || !CATEGORY_ICON_MAP[catName]) {
+      return {
+        icon: 'receipt-outline',
+        color: colors.primaryLight,
+        bg: colors.primarySubtle,
+      };
+    }
+    return CATEGORY_ICON_MAP[catName];
+  };
+
   const renderDocumentCard = ({ item }: { item: DocumentWithDetails }) => {
     const ocrSnippet = getOcrSnippet(item, searchQuery);
+    const catMeta = getCategoryMeta(item.category_name);
 
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
           <View style={styles.storeCol}>
+            <View style={[styles.cardCatIconBox, { backgroundColor: catMeta.bg }]}>
+              <Ionicons name={catMeta.icon as any} size={15} color={catMeta.color} />
+            </View>
             <Text style={styles.storeName}>{item.store_name ?? 'Inny sklep'}</Text>
             {item.category_name && (
               <Text style={styles.categoryPill}>{item.category_name}</Text>
@@ -177,19 +194,30 @@ export default function SearchScreen() {
         {/* Snippet z odnalezionym tekstem w OCR */}
         {ocrSnippet && (
           <View style={styles.ocrSnippetBox}>
-            <Text style={styles.ocrSnippetLabel}>Trafienie w tresci paragonu:</Text>
+            <View style={styles.ocrSnippetHeader}>
+              <Ionicons name="search" size={12} color={colors.primaryLight} style={{ marginRight: 4 }} />
+              <Text style={styles.ocrSnippetLabel}>Trafienie w treści OCR:</Text>
+            </View>
             <Text style={styles.ocrSnippetText}>"{ocrSnippet}"</Text>
           </View>
         )}
 
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>Zakup: {item.purchase_date}</Text>
+          <View style={styles.metaItem}>
+            <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={styles.metaText}>Zakup: {item.purchase_date}</Text>
+          </View>
           {item.warranty_end_date && (
-            <Text style={styles.metaText}>Gwarancja do: {item.warranty_end_date}</Text>
+            <View style={styles.metaItem}>
+              <Ionicons name="shield-checkmark-outline" size={13} color={colors.success} style={{ marginRight: 4 }} />
+              <Text style={[styles.metaText, { color: colors.success }]}>
+                Ochrona: {item.warranty_end_date}
+              </Text>
+            </View>
           )}
         </View>
 
-        {/* Przyciski akcji */}
+        {/* Przyciski akcji z ikonami */}
         <View style={styles.actionsRow}>
           {item.primary_image_path && (
             <TouchableOpacity
@@ -197,10 +225,11 @@ export default function SearchScreen() {
               onPress={() => setPreviewDoc(item)}
               activeOpacity={touchTargets.activeOpacity}
               accessibilityRole="button"
-              accessibilityLabel="Podglad zdjecia paragonu"
+              accessibilityLabel="Podgląd zdjęcia paragonu"
               hitSlop={touchTargets.minHitSlop}
             >
-              <Text style={styles.actionBtnOutlineText}>Podglad</Text>
+              <Ionicons name="eye-outline" size={15} color={colors.textSecondary} style={{ marginRight: 5 }} />
+              <Text style={styles.actionBtnOutlineText}>Podgląd</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -211,6 +240,7 @@ export default function SearchScreen() {
             accessibilityLabel="Wygeneruj wniosek reklamacyjny PDF"
             hitSlop={touchTargets.minHitSlop}
           >
+            <Ionicons name="document-text-outline" size={15} color="#FFFFFF" style={{ marginRight: 5 }} />
             <Text style={styles.actionBtnPrimaryText}>Wniosek PDF</Text>
           </TouchableOpacity>
         </View>
@@ -220,16 +250,9 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Naglowek */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Szukaj w Sejfie</Text>
-        <Text style={styles.headerSubtitle}>
-          Wyszukiwarka pelnotekstowa SQLite FTS5 (OCR, pozycje, sklepy)
-        </Text>
-      </View>
-
       {/* Pasek wyszukiwania */}
       <View style={styles.searchBox}>
+        <Ionicons name="search" size={18} color={colors.primaryLight} style={{ marginRight: spacing.sm }} />
         <TextInput
           style={styles.searchInput}
           placeholder="Szukaj produktu z paragonu, sklepu, NIP..."
@@ -238,7 +261,7 @@ export default function SearchScreen() {
           onChangeText={handleQueryChange}
           autoCapitalize="none"
           accessibilityRole="search"
-          accessibilityLabel="Pole wyszukiwania pelnotekstowego FTS5"
+          accessibilityLabel="Pole wyszukiwania pełnotekstowego FTS5"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity
@@ -246,33 +269,47 @@ export default function SearchScreen() {
             style={styles.clearBtn}
             hitSlop={touchTargets.minHitSlop}
             accessibilityRole="button"
-            accessibilityLabel="Wyczysc wyszukiwanie"
+            accessibilityLabel="Wyczyść wyszukiwanie"
           >
-            <Text style={styles.clearBtnText}>Wyczysc</Text>
+            <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Kategorie */}
+      {/* Kategorie z ikonami */}
       <View style={styles.categoriesContainer}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={categories}
+          data={[{ id: -1, name: 'Wszystkie' }, ...categories]}
           keyExtractor={(c) => c.id.toString()}
           contentContainerStyle={styles.categoriesList}
           renderItem={({ item }) => {
-            const isSelected = selectedCategory === item.id;
+            const isAll = item.id === -1;
+            const isSelected = isAll ? selectedCategory === undefined : selectedCategory === item.id;
+            const meta = isAll
+              ? { icon: 'grid-outline', color: isSelected ? '#FFFFFF' : colors.textSecondary }
+              : {
+                  icon: getCategoryMeta(item.name).icon,
+                  color: isSelected ? '#FFFFFF' : getCategoryMeta(item.name).color,
+                };
+
             return (
               <TouchableOpacity
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
-                onPress={() => handleCategorySelect(item.id)}
+                onPress={() => handleCategorySelect(isAll ? undefined : item.id)}
                 activeOpacity={touchTargets.activeOpacity}
                 accessibilityRole="button"
                 accessibilityLabel={`Kategoria ${item.name}`}
                 accessibilityState={{ selected: isSelected }}
                 hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons
+                  name={meta.icon as any}
+                  size={14}
+                  color={meta.color}
+                  style={{ marginRight: 5 }}
+                />
                 <Text style={[styles.categoryChipText, isSelected && styles.categoryChipTextSelected]}>
                   {item.name}
                 </Text>
@@ -282,34 +319,37 @@ export default function SearchScreen() {
         />
       </View>
 
-      {/* Licznik wynikow */}
+      {/* Licznik wyników */}
       <View style={styles.resultsHeader}>
+        <Ionicons name="server-outline" size={14} color={colors.textMuted} style={{ marginRight: 6 }} />
         <Text style={styles.resultsCountText}>
           {isSearching
-            ? 'Przeszukiwanie bazy SQLite...'
-            : `Znaleziono ${results.length} ${results.length === 1 ? 'pozycje' : 'pozycji'}`}
+            ? 'Przeszukiwanie indeksów SQLite FTS5...'
+            : `Znaleziono ${results.length} ${results.length === 1 ? 'pozycję' : 'pozycji'}`}
         </Text>
       </View>
 
-      {/* Lista wynikow */}
+      {/* Lista wyników */}
       <FlatList
         data={results}
         keyExtractor={(item) => item.id}
         renderItem={renderDocumentCard}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>Brak wynikow</Text>
+            <BrandLogo size={76} variant="lock" showBackground />
+            <Text style={styles.emptyTitle}>Brak wyników wyszukiwania</Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery
-                ? `Nie znaleziono pozycji zawierajacych fraze "${searchQuery}". Sprobuj innego slowa lub nazwy sklepu.`
-                : 'Wpisz nazwe zakupionego przedmiotu lub sklepu, aby przeszukac baze.'}
+                ? `Nie znaleziono pozycji zawierających frazę "${searchQuery}". Silnik FTS5 przeszukuje zarówno nazwy, jak i pełny odczyt OCR.`
+                : 'Wpisz nazwę zakupionego przedmiotu, sklepu lub NIP, aby przeszukać bazę.'}
             </Text>
           </View>
         }
       />
 
-      {/* Modal Podgladu Zdjecia Paragonu */}
+      {/* Modal Podglądu Zdjęcia Paragonu */}
       <Modal
         visible={!!previewDoc}
         transparent
@@ -319,6 +359,9 @@ export default function SearchScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.previewContent}>
             <View style={styles.previewHeader}>
+              <View style={styles.previewHeaderIcon}>
+                <Ionicons name="image-outline" size={18} color={colors.primaryLight} />
+              </View>
               <Text style={styles.previewTitle} numberOfLines={1}>
                 {previewDoc?.title}
               </Text>
@@ -326,11 +369,12 @@ export default function SearchScreen() {
                 onPress={() => setPreviewDoc(null)}
                 hitSlop={touchTargets.minHitSlop}
                 accessibilityRole="button"
-                accessibilityLabel="Zamknij podglad"
+                accessibilityLabel="Zamknij podgląd"
               >
-                <Text style={styles.closeBtnText}>Zamknij</Text>
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
+
             {previewDoc?.primary_image_path ? (
               <Image
                 source={{ uri: previewDoc.primary_image_path }}
@@ -338,8 +382,12 @@ export default function SearchScreen() {
                 resizeMode="contain"
               />
             ) : (
-              <Text style={styles.noImageText}>Brak zapisanego zdjecia dla tego dokumentu.</Text>
+              <View style={styles.noImageBox}>
+                <Ionicons name="document-outline" size={48} color={colors.textMuted} />
+                <Text style={styles.noImageText}>Brak zapisanego pliku zdjęcia.</Text>
+              </View>
             )}
+
             <TouchableOpacity
               style={styles.closeFullBtn}
               onPress={() => setPreviewDoc(null)}
@@ -347,7 +395,7 @@ export default function SearchScreen() {
               accessibilityRole="button"
               accessibilityLabel="Zamknij"
             >
-              <Text style={styles.closeFullBtnText}>Zamknij podglad</Text>
+              <Text style={styles.closeFullBtnText}>Zamknij podgląd</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -363,14 +411,20 @@ export default function SearchScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.complaintModalContent}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.complaintModalTitle}>Zgloszenie Reklamacyjne PDF</Text>
+              <View style={styles.complaintHeaderIcon}>
+                <Ionicons name="document-text" size={20} color={colors.primaryLight} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.complaintModalTitle}>Zgłoszenie Reklamacyjne PDF</Text>
+                <Text style={styles.complaintModalSubtitle}>Oficjalne pismo z tytułu rękojmi</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setComplaintDoc(null)}
                 hitSlop={touchTargets.minHitSlop}
                 accessibilityRole="button"
                 accessibilityLabel="Zamknij formularz reklamacyjny"
               >
-                <Text style={styles.closeBtnText}>Zamknij</Text>
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -383,10 +437,14 @@ export default function SearchScreen() {
                 </Text>
               </View>
 
-              <Text style={styles.formSectionHeader}>Dane Konsumenta (Zglaszajacego)</Text>
+              <View style={styles.formSectionHeaderRow}>
+                <Ionicons name="person-outline" size={14} color={colors.primaryLight} style={{ marginRight: 5 }} />
+                <Text style={styles.formSectionHeader}>Dane Konsumenta (Zgłaszającego)</Text>
+              </View>
+
               <TextInput
                 style={styles.input}
-                placeholder="Imie i nazwisko (wymagane)"
+                placeholder="Imię i nazwisko (wymagane)"
                 placeholderTextColor={colors.textMuted}
                 value={consumerName}
                 onChangeText={setConsumerName}
@@ -417,7 +475,11 @@ export default function SearchScreen() {
                 />
               </View>
 
-              <Text style={styles.formSectionHeader}>Szczegoly Usterki</Text>
+              <View style={styles.formSectionHeaderRow}>
+                <Ionicons name="alert-circle-outline" size={14} color={colors.primaryLight} style={{ marginRight: 5 }} />
+                <Text style={styles.formSectionHeader}>Szczegóły Usterki</Text>
+              </View>
+
               <TextInput
                 style={styles.input}
                 placeholder="Data ujawnienia wady (YYYY-MM-DD)"
@@ -427,7 +489,7 @@ export default function SearchScreen() {
               />
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
-                placeholder="Dokladny opis wady lub usterki..."
+                placeholder="Dokładny opis wady lub usterki (np. samoczynne wyłączanie)..."
                 placeholderTextColor={colors.textMuted}
                 value={defectDescription}
                 onChangeText={setDefectDescription}
@@ -435,13 +497,17 @@ export default function SearchScreen() {
                 numberOfLines={3}
               />
 
-              <Text style={styles.formSectionHeader}>Zadanie Reklamacyjne</Text>
+              <View style={styles.formSectionHeaderRow}>
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.primaryLight} style={{ marginRight: 5 }} />
+                <Text style={styles.formSectionHeader}>Żądanie Reklamacyjne (Art. 560 KC)</Text>
+              </View>
+
               <View style={styles.demandOptions}>
                 {[
                   { key: 'REPAIR' as const, label: 'Naprawa' },
                   { key: 'REPLACEMENT' as const, label: 'Wymiana na nowy' },
-                  { key: 'REFUND' as const, label: 'Zwrot gotowki' },
-                  { key: 'PRICE_REDUCTION' as const, label: 'Obnizenie ceny' },
+                  { key: 'REFUND' as const, label: 'Zwrot gotówki' },
+                  { key: 'PRICE_REDUCTION' as const, label: 'Obniżenie ceny' },
                 ].map((opt) => (
                   <TouchableOpacity
                     key={opt.key}
@@ -449,9 +515,15 @@ export default function SearchScreen() {
                     onPress={() => setConsumerDemand(opt.key)}
                     activeOpacity={touchTargets.activeOpacity}
                     accessibilityRole="button"
-                    accessibilityLabel={`Zadanie: ${opt.label}`}
+                    accessibilityLabel={`Żądanie: ${opt.label}`}
                     accessibilityState={{ selected: consumerDemand === opt.key }}
                   >
+                    <Ionicons
+                      name={consumerDemand === opt.key ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={14}
+                      color={consumerDemand === opt.key ? '#FFFFFF' : colors.textSecondary}
+                      style={{ marginRight: 5 }}
+                    />
                     <Text
                       style={[
                         styles.demandBtnText,
@@ -467,7 +539,7 @@ export default function SearchScreen() {
               {(consumerDemand === 'REFUND' || consumerDemand === 'PRICE_REDUCTION') && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Numer konta bankowego do zwrotu srodkow"
+                  placeholder="Numer konta bankowego do zwrotu środków"
                   placeholderTextColor={colors.textMuted}
                   value={bankAccount}
                   onChangeText={setBankAccount}
@@ -493,12 +565,15 @@ export default function SearchScreen() {
                 disabled={isGeneratingPdf}
                 activeOpacity={touchTargets.activeOpacity}
                 accessibilityRole="button"
-                accessibilityLabel="Generuj i udostepnij wniosek PDF"
+                accessibilityLabel="Generuj i udostępnij wniosek PDF"
               >
                 {isGeneratingPdf ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.generateBtnText}>Generuj i Udostepnij PDF</Text>
+                  <>
+                    <Ionicons name="print-outline" size={17} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.generateBtnText}>Generuj i Udostępnij PDF</Text>
+                  </>
                 )}
               </TouchableOpacity>
             </View>
@@ -514,48 +589,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xs,
-  },
-  headerTitle: {
-    color: colors.textPrimary,
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  headerSubtitle: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2,
-  },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radii.md,
     marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 46,
+    borderColor: colors.borderSubtle,
+    minHeight: 48,
+    ...shadows.subtle,
   },
   searchInput: {
     flex: 1,
-    height: 44,
+    height: 48,
     color: colors.textPrimary,
     fontSize: 14,
   },
   clearBtn: {
-    padding: spacing.sm,
-  },
-  clearBtnText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
+    padding: spacing.xs,
   },
   categoriesContainer: {
     marginBottom: spacing.xs,
@@ -563,16 +618,18 @@ const styles = StyleSheet.create({
   categoriesList: {
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
+    paddingVertical: 2,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
-    minHeight: 36,
+    minHeight: 38,
     paddingVertical: 6,
     paddingHorizontal: spacing.md,
     borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
+    borderColor: colors.borderSubtle,
   },
   categoryChipSelected: {
     backgroundColor: colors.primary,
@@ -588,6 +645,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   resultsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
@@ -602,11 +661,12 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     padding: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
+    ...shadows.subtle,
   },
   cardTop: {
     flexDirection: 'row',
@@ -614,14 +674,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xs,
   },
+  cardCatIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: radii.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   storeCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs + 2,
     flex: 1,
   },
   storeName: {
-    color: colors.primaryLight,
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -632,25 +699,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: radii.xs,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   amountText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.primaryLight,
   },
   titleText: {
     color: colors.textPrimary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: spacing.xs,
   },
   ocrSnippetBox: {
-    backgroundColor: colors.primarySubtle,
+    backgroundColor: 'rgba(2, 132, 199, 0.1)',
     borderWidth: 1,
     borderColor: colors.primary,
     padding: spacing.sm,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     marginBottom: spacing.sm,
+  },
+  ocrSnippetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
   },
   ocrSnippetLabel: {
     color: colors.primaryLight,
@@ -669,6 +743,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   metaText: {
     color: colors.textSecondary,
     fontSize: 11,
@@ -677,17 +755,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderSubtle,
     paddingTop: spacing.sm,
     gap: spacing.sm,
   },
   actionBtnOutline: {
-    minHeight: 38,
+    minHeight: 40,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.borderLight,
     backgroundColor: colors.background,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -697,12 +776,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   actionBtnPrimary: {
-    minHeight: 38,
+    minHeight: 40,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    ...shadows.subtle,
   },
   actionBtnPrimaryText: {
     color: '#FFFFFF',
@@ -711,13 +792,14 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
   emptyTitle: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
+    marginTop: spacing.md,
     marginBottom: spacing.xs,
   },
   emptySubtitle: {
@@ -725,6 +807,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 19,
+    maxWidth: 320,
   },
   modalOverlay: {
     flex: 1,
@@ -737,43 +820,52 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     padding: spacing.md,
     maxHeight: '85%',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   previewHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  previewHeaderIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.xs,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
   previewTitle: {
     color: colors.textPrimary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     flex: 1,
     marginRight: spacing.sm,
   },
-  closeBtnText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: spacing.xs,
-  },
   previewImage: {
     width: '100%',
-    height: 400,
-    borderRadius: radii.sm,
+    height: 380,
+    borderRadius: radii.md,
     backgroundColor: colors.background,
     marginBottom: spacing.md,
+  },
+  noImageBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
   },
   noImageText: {
     color: colors.textSecondary,
     fontSize: 14,
+    marginTop: spacing.sm,
     textAlign: 'center',
-    paddingVertical: spacing.xxl,
   },
   closeFullBtn: {
     backgroundColor: colors.surfaceElevated,
     minHeight: 44,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -788,29 +880,43 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     maxHeight: '90%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
+    ...shadows.medium,
   },
   modalHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  complaintHeaderIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.sm,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
   complaintModalTitle: {
     color: colors.textPrimary,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
+  },
+  complaintModalSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '500',
   },
   complaintScroll: {
     marginBottom: spacing.sm,
   },
   complaintSummaryBox: {
     backgroundColor: colors.background,
-    borderRadius: radii.sm,
-    padding: spacing.sm,
+    borderRadius: radii.md,
+    padding: spacing.sm + 2,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
   },
   complaintProductTitle: {
     color: colors.primaryLight,
@@ -822,29 +928,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
+  formSectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs + 2,
+    marginTop: spacing.xs,
+  },
   formSectionHeader: {
     color: colors.primaryLight,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: spacing.sm,
-    marginTop: spacing.xs,
   },
   input: {
     backgroundColor: colors.background,
     color: colors.textPrimary,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
     fontSize: 13,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
     marginBottom: spacing.sm,
-    minHeight: 44,
+    minHeight: 46,
   },
   inputMultiline: {
-    height: 75,
+    height: 80,
     textAlignVertical: 'top',
   },
   inputRow: {
@@ -862,12 +972,12 @@ const styles = StyleSheet.create({
   },
   demandBtn: {
     backgroundColor: colors.background,
-    minHeight: 38,
+    minHeight: 40,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
+    borderColor: colors.borderSubtle,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   demandBtnSelected: {
@@ -888,13 +998,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderSubtle,
     paddingTop: spacing.md,
   },
   cancelBtn: {
     minHeight: 44,
     paddingHorizontal: spacing.lg,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
@@ -907,11 +1017,13 @@ const styles = StyleSheet.create({
   generateBtn: {
     minHeight: 44,
     paddingHorizontal: spacing.lg,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
-    minWidth: 180,
+    minWidth: 190,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    ...shadows.subtle,
   },
   generateBtnText: {
     color: '#FFFFFF',

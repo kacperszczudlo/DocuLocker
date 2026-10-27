@@ -1,15 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { getDatabase } from '@/database/connection';
 import { CategoryRepository } from '@/database/repositories/categoryRepository';
 import { DocumentRepository } from '@/database/repositories/documentRepository';
 import { CategoryRow, DocumentWithDetails } from '@/database/types';
-import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
+import { colors, spacing, radii, typography, touchTargets, iconSizes, shadows, CATEGORY_ICON_MAP } from '@/theme/tokens';
+import { BrandLogo } from '@/components/BrandLogo';
 
 /**
- * Ekran glowny Dashboard prezentujacy statystyki bazy,
- * horyzontalna liste kategorii oraz ostatnio zarejestrowane dokumenty.
+ * Ekran główny Dashboard prezentujący statystyki bazy,
+ * horyzontalną listę kategorii z prawdziwymi ikonami oraz zarejestrowane dokumenty.
  */
 export default function DashboardScreen() {
   const router = useRouter();
@@ -31,7 +33,7 @@ export default function DashboardScreen() {
       setCategories(cats);
       setDocuments(docs);
     } catch (err) {
-      console.error('[DocuLocker] Blad ladowania danych dashboardu:', err);
+      console.error('[DocuLocker] Błąd ładowania danych dashboardu:', err);
     }
   }, [selectedCategory]);
 
@@ -41,47 +43,97 @@ export default function DashboardScreen() {
     }, [loadData])
   );
 
+  const totalSum = useMemo(() => {
+    return documents.reduce((acc, doc) => acc + (doc.total_amount || 0), 0);
+  }, [documents]);
+
+  const getCategoryMeta = (catName?: string | null) => {
+    if (!catName || !CATEGORY_ICON_MAP[catName]) {
+      return {
+        icon: 'receipt-outline',
+        color: colors.primaryLight,
+        bg: colors.primarySubtle,
+      };
+    }
+    return CATEGORY_ICON_MAP[catName];
+  };
+
   return (
     <View style={styles.container}>
-      {/* Karta Statystyk Bazy */}
+      {/* Karta Statystyk i Bezpieczeństwa Sejfu */}
       <View style={styles.statsCard}>
-        <View style={styles.statsInfo}>
-          <Text style={styles.statsLabel}>Lokalna baza SQLite (Offline)</Text>
-          <Text style={styles.statsValue}>{documents.length} dokumentow w sejfie</Text>
+        <View style={styles.statsCardLeft}>
+          <View style={styles.vaultIconBadge}>
+            <Ionicons name="shield-checkmark" size={24} color={colors.primaryLight} />
+          </View>
+          <View style={styles.statsInfo}>
+            <View style={styles.offlineStatusRow}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statsLabel}>Lokalna Baza SQLite (Offline)</Text>
+            </View>
+            <Text style={styles.statsValue}>
+              {documents.length} {documents.length === 1 ? 'paragon' : 'paragonów'} w sejfie
+            </Text>
+            {documents.length > 0 && (
+              <Text style={styles.statsSubAmount}>
+                Suma wydatków: <Text style={styles.amountHighlight}>{totalSum.toFixed(2)} PLN</Text>
+              </Text>
+            )}
+          </View>
         </View>
+
         <TouchableOpacity
           style={styles.quickAddBtn}
           onPress={() => router.push('/scan')}
           activeOpacity={touchTargets.activeOpacity}
           accessibilityRole="button"
-          accessibilityLabel="Szybkie dodawanie paragonu"
+          accessibilityLabel="Dodaj paragon do sejfu"
           hitSlop={touchTargets.minHitSlop}
         >
-          <Text style={styles.quickAddBtnText}>+ Dodaj</Text>
+          <Ionicons name="camera" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+          <Text style={styles.quickAddBtnText}>Dodaj</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Wybor kategorii */}
-      <Text style={styles.sectionTitle}>Kategorie</Text>
+      {/* Wybór kategorii */}
+      <View style={styles.sectionHeaderRow}>
+        <Ionicons name="pricetags-outline" size={16} color={colors.textSecondary} style={{ marginRight: 6 }} />
+        <Text style={styles.sectionTitle}>Kategorie</Text>
+      </View>
+
       <View style={styles.categoriesContainer}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={categories}
+          data={[{ id: -1, name: 'Wszystkie' }, ...categories]}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.categoriesList}
           renderItem={({ item }) => {
-            const isSelected = selectedCategory === item.id;
+            const isAll = item.id === -1;
+            const isSelected = isAll ? selectedCategory === undefined : selectedCategory === item.id;
+            const meta = isAll
+              ? { icon: 'grid-outline', color: isSelected ? '#FFFFFF' : colors.textSecondary }
+              : {
+                  icon: getCategoryMeta(item.name).icon,
+                  color: isSelected ? '#FFFFFF' : getCategoryMeta(item.name).color,
+                };
+
             return (
               <TouchableOpacity
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
-                onPress={() => setSelectedCategory(isSelected ? undefined : item.id)}
+                onPress={() => setSelectedCategory(isAll ? undefined : (isSelected ? undefined : item.id))}
                 activeOpacity={touchTargets.activeOpacity}
                 accessibilityRole="button"
                 accessibilityLabel={`Kategoria ${item.name}`}
                 accessibilityState={{ selected: isSelected }}
                 hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons
+                  name={meta.icon as any}
+                  size={16}
+                  color={meta.color}
+                  style={styles.categoryChipIcon}
+                />
                 <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>
                   {item.name}
                 </Text>
@@ -91,14 +143,35 @@ export default function DashboardScreen() {
         />
       </View>
 
-      {/* Lista dokumentow */}
-      <Text style={styles.sectionTitle}>Ostatnie dokumenty</Text>
+      {/* Lista dokumentów */}
+      <View style={styles.sectionHeaderRow}>
+        <Ionicons name="time-outline" size={16} color={colors.textSecondary} style={{ marginRight: 6 }} />
+        <Text style={styles.sectionTitle}>Zarejestrowane dokumenty</Text>
+      </View>
+
       {documents.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Brak zapisanych paragonow</Text>
+          <BrandLogo size={84} variant="lock" showBackground />
+          <Text style={styles.emptyTitle}>Twój sejf jest pusty</Text>
           <Text style={styles.emptySubtext}>
-            Zrob zdjecie paragonu aparatem lub wybierz plik z pamieci urzadzenia. System ML Kit przetworzy dane lokalnie.
+            Zabezpiecz swoje paragony i faktury przed wyblaknięciem. Zrób zdjęcie aparatem — silnik Edge AI przetworzy dane w 100% lokalnie.
           </Text>
+
+          <View style={styles.securityGuarantees}>
+            <View style={styles.guaranteeRow}>
+              <Ionicons name="lock-closed" size={16} color={colors.primaryLight} />
+              <Text style={styles.guaranteeText}>100% Offline — brak zewnętrznych serwerów</Text>
+            </View>
+            <View style={styles.guaranteeRow}>
+              <Ionicons name="hardware-chip-outline" size={16} color="#00B4D8" />
+              <Text style={styles.guaranteeText}>Lokalne OCR Google ML Kit na urządzeniu</Text>
+            </View>
+            <View style={styles.guaranteeRow}>
+              <Ionicons name="alarm-outline" size={16} color={colors.success} />
+              <Text style={styles.guaranteeText}>Alerty o zbliżającym się końcu gwarancji</Text>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.emptyActionBtn}
             onPress={() => router.push('/scan')}
@@ -106,7 +179,8 @@ export default function DashboardScreen() {
             accessibilityRole="button"
             accessibilityLabel="Zeskanuj pierwszy paragon"
           >
-            <Text style={styles.emptyActionBtnText}>Zeskanuj paragon</Text>
+            <Ionicons name="camera" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.emptyActionBtnText}>Zeskanuj pierwszy paragon</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -114,36 +188,79 @@ export default function DashboardScreen() {
           data={documents}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.documentsList}
-          renderItem={({ item }) => (
-            <View style={styles.documentCard}>
-              <View style={styles.docLeft}>
-                <Text style={styles.docTitle} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.docMeta}>
-                  {item.purchase_date} {item.store_name ? `| ${item.store_name}` : ''}
-                </Text>
-                {item.warranty_end_date && (
-                  <Text style={styles.docWarranty}>
-                    Gwarancja do: {item.warranty_end_date}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const catMeta = getCategoryMeta(item.category_name);
+            const isWarrantyActive = !!item.warranty_end_date && new Date(item.warranty_end_date) >= new Date();
+
+            return (
+              <TouchableOpacity
+                style={styles.documentCard}
+                activeOpacity={touchTargets.activeOpacity}
+                onPress={() => router.push('/search')}
+              >
+                {/* Wektorowa ikona kategorii */}
+                <View style={[styles.docCategoryIconBox, { backgroundColor: catMeta.bg }]}>
+                  <Ionicons name={catMeta.icon as any} size={22} color={catMeta.color} />
+                </View>
+
+                {/* Środkowa zawartość */}
+                <View style={styles.docLeft}>
+                  <Text style={styles.docTitle} numberOfLines={1}>{item.title}</Text>
+                  
+                  <View style={styles.docMetaRow}>
+                    {item.store_name ? (
+                      <View style={styles.docStoreBadge}>
+                        <Ionicons name="business-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                        <Text style={styles.docStoreText} numberOfLines={1}>{item.store_name}</Text>
+                      </View>
+                    ) : null}
+                    
+                    <View style={styles.docDateBadge}>
+                      <Ionicons name="calendar-outline" size={12} color={colors.textMuted} style={{ marginRight: 3 }} />
+                      <Text style={styles.docDateText}>{item.purchase_date}</Text>
+                    </View>
+                  </View>
+
+                  {item.warranty_end_date && (
+                    <View style={[styles.warrantyPill, isWarrantyActive ? styles.warrantyPillActive : styles.warrantyPillExpired]}>
+                      <Ionicons
+                        name={isWarrantyActive ? 'shield-checkmark' : 'alert-circle'}
+                        size={12}
+                        color={isWarrantyActive ? colors.success : colors.textMuted}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text style={[styles.docWarranty, isWarrantyActive ? styles.docWarrantyActive : styles.docWarrantyExpired]}>
+                        Gwarancja do: {item.warranty_end_date}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Prawa strona - Kwota i strzałka */}
+                <View style={styles.docRight}>
+                  <Text style={styles.docAmount}>
+                    {item.total_amount.toFixed(2)}
                   </Text>
-                )}
-              </View>
-              <Text style={styles.docAmount}>
-                {item.total_amount.toFixed(2)} {item.currency}
-              </Text>
-            </View>
-          )}
+                  <Text style={styles.docCurrency}>{item.currency}</Text>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginTop: 4 }} />
+                </View>
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
 
-      {/* Plywajacy przycisk akcji (FAB) */}
+      {/* Pływający przycisk akcji (FAB) zgodny z M3 */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/scan')}
         activeOpacity={touchTargets.activeOpacity}
         accessibilityRole="button"
-        accessibilityLabel="Zeskanuj paragon"
+        accessibilityLabel="Zeskanuj paragon aparatem"
       >
-        <Text style={styles.fabText}>+ Skanuj paragon</Text>
+        <Ionicons name="scan-outline" size={22} color="#FFFFFF" style={{ marginRight: 8 }} />
+        <Text style={styles.fabText}>Skanuj paragon</Text>
       </TouchableOpacity>
     </View>
   );
@@ -153,77 +270,125 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
   statsCard: {
     backgroundColor: colors.surface,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     padding: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    ...shadows.subtle,
+  },
+  statsCardLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  vaultIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm + 4,
   },
   statsInfo: {
     flex: 1,
-    marginRight: spacing.sm,
+  },
+  offlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.success,
+    marginRight: 6,
   },
   statsLabel: {
     color: colors.textSecondary,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   statsValue: {
     color: colors.textPrimary,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
-    marginTop: spacing.xs,
+    marginTop: 2,
+  },
+  statsSubAmount: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  amountHighlight: {
+    color: colors.primaryLight,
+    fontWeight: '700',
   },
   quickAddBtn: {
     backgroundColor: colors.primary,
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: spacing.md,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
+    ...shadows.subtle,
   },
   quickAddBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs + 4,
+    marginTop: spacing.xs,
+  },
   sectionTitle: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.sm,
+    letterSpacing: 0.6,
   },
   categoriesContainer: {
-    maxHeight: 48,
+    maxHeight: 52,
     marginBottom: spacing.md,
   },
   categoriesList: {
     gap: spacing.sm,
+    paddingVertical: 2,
   },
   categoryChip: {
     backgroundColor: colors.surface,
-    minHeight: 38,
+    minHeight: 40,
     paddingHorizontal: spacing.md,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
   },
   categoryChipSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primaryLight,
+  },
+  categoryChipIcon: {
+    marginRight: 6,
   },
   categoryText: {
     color: colors.textSecondary,
@@ -235,75 +400,155 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   documentsList: {
-    paddingBottom: 80,
+    paddingBottom: 96,
+  },
+  documentCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    ...shadows.subtle,
+  },
+  docCategoryIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  docLeft: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  docTitle: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  docMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: 4,
+  },
+  docStoreBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  docStoreText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
+    maxWidth: 130,
+  },
+  docDateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  docDateText: {
+    color: colors.textMuted,
+    fontSize: 12,
+  },
+  warrantyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radii.xs,
+  },
+  warrantyPillActive: {
+    backgroundColor: colors.successSubtle,
+  },
+  warrantyPillExpired: {
+    backgroundColor: colors.expiredSubtle,
+  },
+  docWarranty: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  docWarrantyActive: {
+    color: colors.success,
+  },
+  docWarrantyExpired: {
+    color: colors.textMuted,
+  },
+  docRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  docAmount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  docCurrency: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primaryLight,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.lg,
   },
-  emptyText: {
+  emptyTitle: {
     color: colors.textPrimary,
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
+    marginTop: spacing.md,
   },
   emptySubtext: {
     color: colors.textSecondary,
     fontSize: 13,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs + 2,
     textAlign: 'center',
     lineHeight: 19,
+    maxWidth: 320,
+  },
+  securityGuarantees: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    gap: spacing.sm,
+  },
+  guaranteeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  guaranteeText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
   },
   emptyActionBtn: {
     backgroundColor: colors.primary,
     marginTop: spacing.lg,
     minHeight: touchTargets.minHeight,
     paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: radii.md,
+    ...shadows.medium,
   },
   emptyActionBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
-  },
-  documentCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  docLeft: {
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  docTitle: {
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  docMeta: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginTop: spacing.xs,
-  },
-  docWarranty: {
-    color: colors.success,
-    fontSize: 11,
-    marginTop: spacing.xs,
-    fontWeight: '600',
-  },
-  docAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primaryLight,
   },
   fab: {
     position: 'absolute',
@@ -316,11 +561,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 8,
+    ...shadows.floating,
   },
   fabText: {
     color: '#FFFFFF',

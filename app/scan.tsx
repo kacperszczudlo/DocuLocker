@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { getDatabase } from '@/database/connection';
 import { CategoryRepository } from '@/database/repositories/categoryRepository';
 import { DocumentRepository } from '@/database/repositories/documentRepository';
@@ -24,26 +25,24 @@ import { ScanReceiptUseCase } from '@/core/useCases/scanReceiptUseCase';
 import { SaveDocumentUseCase } from '@/core/useCases/saveDocumentUseCase';
 import { NotificationService } from '@/services/notifications/notificationService';
 import { CategoryRow } from '@/database/types';
-import { colors, spacing, radii, typography, touchTargets } from '@/theme/tokens';
+import { colors, spacing, radii, typography, touchTargets, iconSizes, shadows, CATEGORY_ICON_MAP } from '@/theme/tokens';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const WARRANTY_OPTIONS = [
-  { label: 'Brak', months: 0 },
-  { label: '12 m-cy', months: 12 },
-  { label: '24 m-ce (Standard)', months: 24 },
-  { label: '36 m-cy', months: 36 },
-  { label: '60 m-cy (5 lat)', months: 60 },
+  { label: 'Brak', months: 0, icon: 'close-circle-outline' },
+  { label: '12 m-cy', months: 12, icon: 'time-outline' },
+  { label: '24 m-ce (Standard)', months: 24, icon: 'shield-checkmark-outline' },
+  { label: '36 m-cy', months: 36, icon: 'shield-checkmark' },
+  { label: '60 m-cy (5 lat)', months: 60, icon: 'ribbon-outline' },
 ];
 
 /**
  * ScanScreen - Ekran akwizycji i weryfikacji paragonu.
  *
- * Umozliwia uzytkownikowi:
- * 1. Wykonanie zdjecia paragonu aparatem lub wybor z galerii urzadzenia.
- * 2. Przetworzenie obrazu przez silnik ML Kit OCR (ekstrakcja tekstu na urzadzeniu).
- * 3. Parsowanie tekstu za pomoca heurystyk paragonowych (kwota, data, sklep, NIP).
- * 4. Interaktywna weryfikacje i ewentualna korekte wyekstrahowanych metadanych.
- * 5. Zapisanie dokumentu do bazy SQLite oraz skopiowanie zdjecia do trwalego magazynu.
- * 6. Zaplanowanie powiadomien o wygasajacej gwarancji w systemie lokalnym.
+ * Zaprojektowany zgodnie z Google Material Design 3 i Apple HIG 2025:
+ * - Wektorowe ikony dla każdej akcji i pola wejściowego
+ * - Minimalny touch target 48dp na kontrolkę
+ * - Czytelne wskaźniki inferencji ML Kit Edge AI
  */
 export default function ScanScreen() {
   const router = useRouter();
@@ -82,9 +81,8 @@ export default function ScanScreen() {
         const catRepo = new CategoryRepository(db);
         const list = await catRepo.listCategories();
         setCategories(list);
-        // Brak wymuszonego wyboru pierwszej kategorii — użytkownik lub parser OCR ustawia ją na podstawie paragonu
       } catch (err) {
-        console.error('Blad ladowania kategorii:', err);
+        console.error('Błąd ładowania kategorii:', err);
       }
     }
     loadCategories();
@@ -97,7 +95,7 @@ export default function ScanScreen() {
       if (useCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Brak uprawnien', 'Aplikacja potrzebuje dostepu do aparatu.');
+          Alert.alert('Brak uprawnień', 'Aplikacja potrzebuje dostępu do aparatu.');
           return;
         }
         result = await ImagePicker.launchCameraAsync({
@@ -108,7 +106,7 @@ export default function ScanScreen() {
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Brak uprawnien', 'Aplikacja potrzebuje dostepu do galerii.');
+          Alert.alert('Brak uprawnień', 'Aplikacja potrzebuje dostępu do galerii.');
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({
@@ -118,16 +116,14 @@ export default function ScanScreen() {
         });
       }
 
-      console.log('[DocuLocker] ImagePicker result canceled:', result.canceled, 'assets:', result.assets?.length);
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedUri = result.assets[0].uri;
-        console.log('[DocuLocker] Image selected uri:', selectedUri);
         setImageUri(selectedUri);
         await processReceiptImage(selectedUri);
       }
     } catch (err) {
-      console.error('[DocuLocker] Blad wyboru zdjecia:', err);
-      Alert.alert('Blad', 'Nie udalo sie pobrac zdjecia.');
+      console.error('[DocuLocker] Błąd wyboru zdjęcia:', err);
+      Alert.alert('Błąd', 'Nie udało się pobrać zdjęcia.');
     }
   };
 
@@ -135,19 +131,9 @@ export default function ScanScreen() {
     setIsProcessingOcr(true);
     const startTime = Date.now();
     try {
-      console.log('[DocuLocker] Rozpoczynam inferencje ML Kit dla:', uri);
       const ocrEngine = new MlKitOcrEngine();
       const scanUseCase = new ScanReceiptUseCase(ocrEngine);
       const parsed = await scanUseCase.execute(uri);
-
-      console.log('[DocuLocker] Wynik parsowania paragonu:', JSON.stringify({
-        suggestedTitle: parsed.suggestedTitle,
-        storeName: parsed.storeName,
-        suggestedCategoryName: parsed.suggestedCategoryName,
-        suggestedReturnDays: parsed.suggestedReturnDays,
-        totalAmount: parsed.totalAmount,
-        purchaseDate: parsed.purchaseDate,
-      }));
 
       setOcrProcessingTime(Date.now() - startTime);
       setOcrRawText(parsed.rawText);
@@ -186,7 +172,7 @@ export default function ScanScreen() {
             setReturnDays(String(store.default_return_days));
           }
         } catch {
-          // zostaw domyslne 14
+          // domyślne 14
         }
       }
 
@@ -196,7 +182,7 @@ export default function ScanScreen() {
         hasStore: !!parsed.storeName,
       });
     } catch (err) {
-      console.error('[DocuLocker] Blad inferencji OCR:', err);
+      console.error('[DocuLocker] Błąd inferencji OCR:', err);
     } finally {
       setIsProcessingOcr(false);
     }
@@ -205,18 +191,18 @@ export default function ScanScreen() {
   const handleSave = async () => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      Alert.alert('Wymagane pole', 'Wprowadz tytul dokumentu.');
+      Alert.alert('Wymagane pole', 'Wprowadź tytuł dokumentu.');
       return;
     }
 
     const parsedAmount = parseFloat(totalAmount.replace(',', '.'));
     if (isNaN(parsedAmount) || parsedAmount < 0) {
-      Alert.alert('Niepoprawna kwota', 'Wprowadz poprawna kwote transakcji.');
+      Alert.alert('Niepoprawna kwota', 'Wprowadź poprawną kwotę transakcji.');
       return;
     }
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(purchaseDate)) {
-      Alert.alert('Niepoprawna data', 'Wprowadz date w formacie RRRR-MM-DD.');
+      Alert.alert('Niepoprawna data', 'Wprowadź datę w formacie RRRR-MM-DD.');
       return;
     }
 
@@ -247,11 +233,22 @@ export default function ScanScreen() {
 
       router.back();
     } catch (err) {
-      console.error('Blad zapisu paragonu:', err);
-      Alert.alert('Blad zapisu', 'Nie udalo sie zapisac paragonu w bazie SQLite.');
+      console.error('Błąd zapisu paragonu:', err);
+      Alert.alert('Błąd zapisu', 'Nie udało się zapisać paragonu w bazie SQLite.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const getCategoryMeta = (catName?: string) => {
+    if (!catName || !CATEGORY_ICON_MAP[catName]) {
+      return {
+        icon: 'receipt-outline',
+        color: colors.primaryLight,
+        bg: colors.primarySubtle,
+      };
+    }
+    return CATEGORY_ICON_MAP[catName];
   };
 
   return (
@@ -259,25 +256,34 @@ export default function ScanScreen() {
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Sekcja dodawania zdjęcia */}
         {!imageUri ? (
           <View style={styles.captureCard}>
-            <Text style={styles.captureTitle}>Dodaj zdjecie paragonu</Text>
+            <BrandLogo size={64} variant="lock" showBackground />
+            <Text style={styles.captureTitle}>Zrób zdjęcie lub dodaj plik</Text>
             <Text style={styles.captureSubtitle}>
-              Przetwarzanie OCR odbywa sie w 100% lokalnie na telefonie
+              Silnik Google ML Kit rozpozna kwotę, datę i sklep lokalnie w piaskownicy telefonu
             </Text>
+
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={[styles.primaryButton, styles.captureBtn]}
                 onPress={() => handlePickImage(true)}
+                activeOpacity={touchTargets.activeOpacity}
+                hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons name="camera" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={styles.primaryButtonText}>Aparat</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.secondaryButton, styles.captureBtn]}
                 onPress={() => handlePickImage(false)}
+                activeOpacity={touchTargets.activeOpacity}
+                hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons name="images-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={styles.secondaryButtonText}>Galeria</Text>
               </TouchableOpacity>
             </View>
@@ -288,11 +294,12 @@ export default function ScanScreen() {
             <View style={styles.imageActions}>
               {isProcessingOcr ? (
                 <View style={styles.ocrLoadingBadge}>
-                  <ActivityIndicator size="small" color="#38BDF8" />
-                  <Text style={styles.ocrLoadingText}>Odczytywanie OCR...</Text>
+                  <ActivityIndicator size="small" color={colors.primaryLight} />
+                  <Text style={styles.ocrLoadingText}>Odczytywanie OCR ML Kit...</Text>
                 </View>
               ) : (
                 <View style={styles.ocrFinishedBadge}>
+                  <Ionicons name="checkmark-circle" size={15} color={colors.success} style={{ marginRight: 5 }} />
                   <Text style={styles.ocrFinishedText}>
                     ML Kit OCR: {ocrProcessingTime ?? 0} ms
                   </Text>
@@ -301,51 +308,84 @@ export default function ScanScreen() {
               <TouchableOpacity
                 style={styles.changeImageBtn}
                 onPress={() => handlePickImage(true)}
+                hitSlop={touchTargets.minHitSlop}
               >
-                <Text style={styles.changeImageText}>Zmien</Text>
+                <Ionicons name="refresh" size={14} color="#E2E8F0" style={{ marginRight: 5 }} />
+                <Text style={styles.changeImageText}>Zmień</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
-        {/* Wskaźniki pewności OCR */}
+        {/* Wskaźniki pewności OCR z ikonami */}
         {imageUri && !isProcessingOcr && (
           <View style={styles.badgesRow}>
             <View style={[styles.badge, detectedConfidence.hasAmount ? styles.badgeSuccess : styles.badgeWarn]}>
+              <Ionicons
+                name={detectedConfidence.hasAmount ? 'checkmark-circle' : 'alert-circle'}
+                size={13}
+                color={detectedConfidence.hasAmount ? colors.success : colors.warning}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasAmount ? 'Kwota zweryfikowana' : 'Do weryfikacji: kwota'}
+                {detectedConfidence.hasAmount ? 'Kwota wykryta' : 'Weryfikacja kwoty'}
               </Text>
             </View>
+
             <View style={[styles.badge, detectedConfidence.hasDate ? styles.badgeSuccess : styles.badgeWarn]}>
+              <Ionicons
+                name={detectedConfidence.hasDate ? 'checkmark-circle' : 'alert-circle'}
+                size={13}
+                color={detectedConfidence.hasDate ? colors.success : colors.warning}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasDate ? 'Data zweryfikowana' : 'Do weryfikacji: data'}
+                {detectedConfidence.hasDate ? 'Data wykryta' : 'Weryfikacja daty'}
               </Text>
             </View>
+
             <View style={[styles.badge, detectedConfidence.hasStore ? styles.badgeSuccess : styles.badgeNeutral]}>
+              <Ionicons
+                name={detectedConfidence.hasStore ? 'checkmark-circle' : 'information-circle'}
+                size={13}
+                color={detectedConfidence.hasStore ? colors.success : colors.textSecondary}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.badgeText}>
-                {detectedConfidence.hasStore ? 'Sklep zweryfikowany' : 'Sklep opcjonalny'}
+                {detectedConfidence.hasStore ? 'Sklep wykryty' : 'Sklep opcjonalny'}
               </Text>
             </View>
           </View>
         )}
 
         {/* Formularz weryfikacji */}
-        <Text style={styles.formSectionTitle}>Szczegoly zakupu</Text>
+        <View style={styles.formSectionHeaderRow}>
+          <Ionicons name="receipt-outline" size={16} color={colors.primaryLight} style={{ marginRight: 6 }} />
+          <Text style={styles.formSectionTitle}>Szczegóły Zakupu</Text>
+        </View>
 
+        {/* Tytuł */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Tytul dokumentu *</Text>
+          <View style={styles.labelRow}>
+            <Ionicons name="pricetag-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={styles.label}>Tytuł dokumentu *</Text>
+          </View>
           <TextInput
             style={styles.input}
-            placeholder="np. Biedronka - Zakupy"
+            placeholder="np. MediaMarkt - Słuchawki Sony"
             placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
           />
         </View>
 
+        {/* Kwota i Waluta */}
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 2 }]}>
-            <Text style={styles.label}>Kwota *</Text>
+            <View style={styles.labelRow}>
+              <Ionicons name="cash-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={styles.label}>Kwota *</Text>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="0.00"
@@ -356,7 +396,9 @@ export default function ScanScreen() {
             />
           </View>
           <View style={[styles.inputGroup, { flex: 1, marginLeft: 12 }]}>
-            <Text style={styles.label}>Waluta</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Waluta</Text>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="PLN"
@@ -367,32 +409,40 @@ export default function ScanScreen() {
           </View>
         </View>
 
-        <View style={styles.row}>
-          <View style={[styles.inputGroup, { flex: 1 }]}>
+        {/* Data zakupu */}
+        <View style={styles.inputGroup}>
+          <View style={styles.labelRow}>
+            <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
             <Text style={styles.label}>Data zakupu (RRRR-MM-DD) *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="2026-10-23"
-              placeholderTextColor={colors.textMuted}
-              value={purchaseDate}
-              onChangeText={setPurchaseDate}
-            />
           </View>
+          <TextInput
+            style={styles.input}
+            placeholder="2026-10-27"
+            placeholderTextColor={colors.textMuted}
+            value={purchaseDate}
+            onChangeText={setPurchaseDate}
+          />
         </View>
 
+        {/* Sklep i NIP */}
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 2 }]}>
-            <Text style={styles.label}>Nazwa sklepu</Text>
+            <View style={styles.labelRow}>
+              <Ionicons name="business-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={styles.label}>Nazwa sklepu</Text>
+            </View>
             <TextInput
               style={styles.input}
-              placeholder="np. MediaMarkt, Lidl"
+              placeholder="np. MediaMarkt, Biedronka"
               placeholderTextColor={colors.textMuted}
               value={storeName}
               onChangeText={setStoreName}
             />
           </View>
           <View style={[styles.inputGroup, { flex: 1.5, marginLeft: 12 }]}>
-            <Text style={styles.label}>NIP (opcjonalny)</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>NIP sprzedawcy</Text>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="np. 5270008098"
@@ -405,16 +455,29 @@ export default function ScanScreen() {
         </View>
 
         {/* Wybór kategorii */}
-        <Text style={styles.label}>Kategoria</Text>
+        <View style={styles.labelRow}>
+          <Ionicons name="folder-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+          <Text style={styles.label}>Kategoria</Text>
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {categories.map((cat) => {
             const isSelected = selectedCategoryId === cat.id;
+            const meta = getCategoryMeta(cat.name);
+
             return (
               <TouchableOpacity
                 key={cat.id}
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
                 onPress={() => setSelectedCategoryId(isSelected ? null : cat.id)}
+                activeOpacity={touchTargets.activeOpacity}
+                hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons
+                  name={meta.icon as any}
+                  size={14}
+                  color={isSelected ? '#FFFFFF' : meta.color}
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={[styles.categoryChipText, isSelected && styles.categoryChipTextSelected]}>
                   {cat.name}
                 </Text>
@@ -424,7 +487,10 @@ export default function ScanScreen() {
         </ScrollView>
 
         {/* Okres gwarancji */}
-        <Text style={[styles.label, { marginTop: 16 }]}>Okres gwarancji / rekojmi</Text>
+        <View style={[styles.labelRow, { marginTop: spacing.sm }]}>
+          <Ionicons name="shield-checkmark-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+          <Text style={styles.label}>Okres gwarancji / rękojmi</Text>
+        </View>
         <View style={styles.warrantyRow}>
           {WARRANTY_OPTIONS.map((opt) => {
             const isSelected = warrantyMonths === opt.months;
@@ -433,7 +499,15 @@ export default function ScanScreen() {
                 key={opt.months}
                 style={[styles.warrantyChip, isSelected && styles.warrantyChipSelected]}
                 onPress={() => setWarrantyMonths(opt.months)}
+                activeOpacity={touchTargets.activeOpacity}
+                hitSlop={touchTargets.minHitSlop}
               >
+                <Ionicons
+                  name={opt.icon as any}
+                  size={14}
+                  color={isSelected ? '#FFFFFF' : colors.textSecondary}
+                  style={{ marginRight: 5 }}
+                />
                 <Text style={[styles.warrantyChipText, isSelected && styles.warrantyChipTextSelected]}>
                   {opt.label}
                 </Text>
@@ -444,7 +518,10 @@ export default function ScanScreen() {
 
         {/* Okno zwrotu */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Prawo do zwrotu (dni)</Text>
+          <View style={styles.labelRow}>
+            <Ionicons name="return-up-back-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={styles.label}>Prawo do zwrotu (dni)</Text>
+          </View>
           <TextInput
             style={styles.input}
             placeholder="14"
@@ -457,10 +534,13 @@ export default function ScanScreen() {
 
         {/* Notatki */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Notatki</Text>
+          <View style={styles.labelRow}>
+            <Ionicons name="chatbox-ellipses-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={styles.label}>Dodatkowe notatki</Text>
+          </View>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Dodatkowe uwagi, numer paragonu..."
+            placeholder="np. Numer zamówienia, numer paragonu fiskalnego, warunki serwisu..."
             placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={3}
@@ -469,16 +549,22 @@ export default function ScanScreen() {
           />
         </View>
 
-        {/* Przycisk Zapisz */}
+        {/* Przycisk Zapisz z ikoną kłódki */}
         <TouchableOpacity
           style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={isSaving}
+          activeOpacity={touchTargets.activeOpacity}
+          accessibilityRole="button"
+          accessibilityLabel="Zapisz paragon w bezpiecznym sejfie"
         >
           {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.saveButtonText}>Zapisz w sejfie</Text>
+            <>
+              <Ionicons name="lock-closed" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.saveButtonText}>Zapisz w sejfie</Text>
+            </>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -489,86 +575,98 @@ export default function ScanScreen() {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.background,
   },
   content: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: spacing.md,
+    paddingBottom: spacing.xxl + 20,
   },
   captureCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    padding: spacing.lg,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
+    ...shadows.medium,
   },
   captureTitle: {
-    color: '#F8FAFC',
+    color: colors.textPrimary,
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    marginTop: spacing.md,
   },
   captureSubtitle: {
-    color: '#94A3B8',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: 12,
     marginTop: 4,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+    lineHeight: 17,
+    maxWidth: 300,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
     width: '100%',
   },
   captureBtn: {
     flex: 1,
   },
   primaryButton: {
-    backgroundColor: '#0284C7',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    minHeight: touchTargets.minHeight,
+    borderRadius: radii.md,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.subtle,
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 15,
+    fontWeight: '700',
+    fontSize: 14,
   },
   secondaryButton: {
-    backgroundColor: '#334155',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.surfaceElevated,
+    minHeight: touchTargets.minHeight,
+    borderRadius: radii.md,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   secondaryButtonText: {
     color: '#F1F5F9',
-    fontWeight: '600',
-    fontSize: 15,
+    fontWeight: '700',
+    fontSize: 14,
   },
   imagePreviewContainer: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
+    ...shadows.subtle,
   },
   imagePreview: {
     width: '100%',
-    height: 180,
-    borderRadius: 8,
-    backgroundColor: '#0F172A',
+    height: 190,
+    borderRadius: radii.md,
+    backgroundColor: colors.background,
   },
   imageActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: spacing.sm + 2,
   },
   ocrLoadingBadge: {
     flexDirection: 'row',
@@ -576,151 +674,185 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ocrLoadingText: {
-    color: '#38BDF8',
+    color: colors.primaryLight,
     fontSize: 13,
+    fontWeight: '600',
   },
   ocrFinishedBadge: {
-    backgroundColor: '#064E3B',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radii.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   ocrFinishedText: {
-    color: '#34D399',
+    color: colors.success,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   changeImageBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#334155',
-    borderRadius: 6,
+    paddingHorizontal: spacing.md,
+    minHeight: 36,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radii.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   changeImageText: {
     color: '#E2E8F0',
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '700',
   },
   badgesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
+    gap: spacing.xs + 2,
+    marginBottom: spacing.md,
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 16,
+    borderRadius: radii.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   badgeSuccess: {
-    backgroundColor: '#064E3B',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   badgeWarn: {
-    backgroundColor: '#78350F',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
   },
   badgeNeutral: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
   },
   badgeText: {
-    color: '#F8FAFC',
-    fontSize: 12,
-    fontWeight: '500',
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  formSectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
   },
   formSectionTitle: {
-    color: '#CBD5E1',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   inputGroup: {
-    marginBottom: 14,
+    marginBottom: spacing.sm + 4,
   },
   row: {
     flexDirection: 'row',
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   label: {
-    color: '#94A3B8',
-    fontSize: 13,
-    marginBottom: 6,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 8,
-    color: '#F8FAFC',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
+    borderColor: colors.borderSubtle,
+    borderRadius: radii.md,
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.md,
+    fontSize: 14,
+    minHeight: 48,
   },
   textArea: {
-    minHeight: 70,
+    minHeight: 80,
+    paddingTop: 12,
     textAlignVertical: 'top',
   },
   categoryScroll: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: spacing.sm + 4,
+    paddingVertical: 2,
   },
   categoryChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#334155',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    borderColor: colors.borderSubtle,
+    paddingHorizontal: spacing.md,
+    minHeight: 38,
+    borderRadius: radii.xl,
+    marginRight: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryChipSelected: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
   },
   categoryChipText: {
-    color: '#94A3B8',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   categoryChipTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   warrantyRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
+    gap: spacing.sm,
+    marginBottom: spacing.sm + 4,
   },
   warrantyChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    minHeight: 38,
+    borderRadius: radii.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   warrantyChipSelected: {
-    backgroundColor: '#0369A1',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primaryDark,
+    borderColor: colors.primaryLight,
   },
   warrantyChipText: {
-    color: '#94A3B8',
-    fontSize: 13,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   warrantyChipTextSelected: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   saveButton: {
     backgroundColor: colors.primary,
     minHeight: 52,
     borderRadius: radii.md,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: spacing.md,
+    ...shadows.medium,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 });

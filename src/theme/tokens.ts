@@ -1,4 +1,4 @@
-import { TextStyle } from 'react-native';
+import { TextStyle, ViewStyle } from 'react-native';
 
 /**
  * DocuLocker Design System Tokens
@@ -10,13 +10,14 @@ export const colors = {
   // Tła i powierzchnie
   background: '#0F172A', // Slate 900
   surface: '#1E293B',    // Slate 800
-  surfaceElevated: '#334155', // Slate 700
+  surfaceElevated: '#24334A', // Zoptymalizowany dla lepszego kontrastu kart
   surfaceSubtle: '#152033',
 
   // Krawędzie i podziały
   border: '#334155',
   borderLight: '#475569',
   borderFocused: '#38BDF8',
+  borderSubtle: '#22344D',
 
   // Typografia i kontrasty (WCAG 2.2 AA >= 4.5:1 against surfaces)
   textPrimary: '#F8FAFC',   // Slate 50 (Kontrast ~13:1 na Slate 800)
@@ -29,6 +30,12 @@ export const colors = {
   primaryLight: '#38BDF8',  // Sky 400
   primaryDark: '#0369A1',   // Sky 700
   primarySubtle: 'rgba(2, 132, 199, 0.15)',
+
+  // Kolory brandowe wektorowe (zgodne z koncepcja ikony DocuLocker)
+  brandNavy: '#0B1938',
+  brandElectricBlue: '#007BFF',
+  brandTeal: '#00B4D8',
+  brandCyan: '#06B6D4',
 
   // Statusy i semantyka
   success: '#10B981',       // Emerald 500 (Aktywna gwarancja)
@@ -61,6 +68,18 @@ export const radii = {
   full: 9999,
 } as const;
 
+/**
+ * Standardowa skala ikon wedlug Google M3 i Apple HIG:
+ * 16 (inline), 20 (kompaktowe), 24 (standard UI), 32 (akcenty kart), 48 (hero/puste stany)
+ */
+export const iconSizes = {
+  xs: 16,
+  sm: 20,
+  md: 24,
+  lg: 32,
+  xl: 48,
+} as const;
+
 export const typography: Record<string, TextStyle> = {
   titleLarge: {
     fontSize: 22,
@@ -75,6 +94,11 @@ export const typography: Record<string, TextStyle> = {
   titleSmall: {
     fontSize: 15,
     fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  bodyLarge: {
+    fontSize: 16,
+    fontWeight: '400',
     color: colors.textPrimary,
   },
   bodyMedium: {
@@ -104,3 +128,68 @@ export const touchTargets = {
   },
   activeOpacity: 0.7,
 } as const;
+
+export const shadows = {
+  subtle: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  } as ViewStyle,
+  medium: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  } as ViewStyle,
+  floating: {
+    shadowColor: '#007BFF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 10,
+  } as ViewStyle,
+};
+
+/**
+ * Konfiguracja ikon i kolorów akcentu dla kategorii dokumentów
+ */
+export const CATEGORY_ICON_MAP: Record<string, { icon: string; color: string; bg: string }> = {
+  'Elektronika': {
+    icon: 'laptop-outline',
+    color: '#38BDF8',
+    bg: 'rgba(56, 189, 248, 0.15)',
+  },
+  'AGD': {
+    icon: 'home-outline',
+    color: '#00B4D8',
+    bg: 'rgba(0, 180, 216, 0.15)',
+  },
+  'Odzież i Obuwie': {
+    icon: 'shirt-outline',
+    color: '#F472B6',
+    bg: 'rgba(244, 114, 182, 0.15)',
+  },
+  'Dom i Ogród': {
+    icon: 'leaf-outline',
+    color: '#34D399',
+    bg: 'rgba(52, 211, 153, 0.15)',
+  },
+  'Motoryzacja': {
+    icon: 'car-sport-outline',
+    color: '#FB923C',
+    bg: 'rgba(251, 146, 60, 0.15)',
+  },
+  'Zdrowie i Uroda': {
+    icon: 'medkit-outline',
+    color: '#A78BFA',
+    bg: 'rgba(167, 139, 250, 0.15)',
+  },
+  'Inne': {
+    icon: 'receipt-outline',
+    color: '#94A3B8',
+    bg: 'rgba(148, 163, 184, 0.15)',
+  },
+};

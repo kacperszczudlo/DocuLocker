@@ -5,18 +5,19 @@ import { StatusBar } from 'expo-status-bar';
 import { getDatabase } from '@/database/connection';
 import { setupNotificationChannels } from '@/services/notifications/notificationService';
 import * as SplashScreen from 'expo-splash-screen';
-import { colors, spacing, typography } from '@/theme/tokens';
+import { colors, spacing, typography, radii } from '@/theme/tokens';
+import { BrandLogo } from '@/components/BrandLogo';
+import { Ionicons } from '@expo/vector-icons';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
- * Glowny uklad nawigacyjny aplikacji (RootLayout).
+ * Główny układ nawigacyjny aplikacji (RootLayout).
  *
- * Odpowiada za:
- * - Blokowanie automatycznego ukrywania Splash Screena do czasu zakonczenia bootstrapu.
- * - Inicjalizacje bazy danych SQLite (migracje, triggery FTS5, indeksy).
- * - Renderowanie fallbacku ladowania oraz obslugi krytycznych bledow startowych.
- * - Definicje glownego stosu nawigacyjnego (Stack) z ekranami modalnymi.
+ * Spełnia standardy Google Material Design 3 oraz Apple Human Interface Guidelines 2025:
+ * - Brandowany ekran ładowania z wektorowym emblematem Option 1
+ * - Czyste animacje i bezpieczna inicjalizacja bazy SQLite i kanałów powiadomień
+ * - Precyzyjny nagłówek modalnego skanowania paragonu
  */
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -30,8 +31,8 @@ export default function RootLayout() {
         setIsReady(true);
         await SplashScreen.hideAsync();
       } catch (err) {
-        console.error('[DocuLocker] Blad inicjalizacji bazy danych:', err);
-        setInitError(err instanceof Error ? err.message : 'Nieznany blad');
+        console.error('[DocuLocker] Błąd inicjalizacji bazy danych:', err);
+        setInitError(err instanceof Error ? err.message : 'Nieznany błąd');
         await SplashScreen.hideAsync();
       }
     }
@@ -41,6 +42,9 @@ export default function RootLayout() {
   if (initError) {
     return (
       <View style={styles.centerContainer}>
+        <View style={styles.errorIconCircle}>
+          <Ionicons name="alert-circle" size={44} color={colors.danger} />
+        </View>
         <Text style={styles.errorTitle}>Błąd startu aplikacji</Text>
         <Text style={styles.errorMessage}>{initError}</Text>
       </View>
@@ -50,8 +54,10 @@ export default function RootLayout() {
   if (!isReady) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primaryLight} />
-        <Text style={styles.loadingText}>Ładowanie bazy danych DocuLocker...</Text>
+        <BrandLogo size={72} variant="lock" showBackground />
+        <Text style={styles.loadingBrandName}>DocuLocker</Text>
+        <ActivityIndicator size="small" color={colors.primaryLight} style={{ marginTop: spacing.md }} />
+        <Text style={styles.loadingText}>Inicjalizacja bezpiecznej bazy SQLite...</Text>
       </View>
     );
   }
@@ -65,9 +71,15 @@ export default function RootLayout() {
           name="scan"
           options={{
             headerShown: true,
-            title: 'Dodaj paragon',
-            headerStyle: { backgroundColor: colors.background },
+            title: 'Nowy Paragon w Sejfie',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
             headerTintColor: colors.textPrimary,
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 17,
+            },
             presentation: 'modal',
           }}
         />
@@ -84,15 +96,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.lg,
   },
+  loadingBrandName: {
+    color: colors.textPrimary,
+    fontSize: 22,
+    fontWeight: '800',
+    marginTop: spacing.md,
+    letterSpacing: 0.5,
+  },
   loadingText: {
     color: colors.textSecondary,
-    marginTop: spacing.md,
-    fontSize: 14,
+    marginTop: spacing.sm,
+    fontSize: 13,
+  },
+  errorIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: radii.full,
+    backgroundColor: colors.dangerSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
   errorTitle: {
     color: colors.danger,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: spacing.sm,
   },
   errorMessage: {
