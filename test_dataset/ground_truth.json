@@ -1,0 +1,1657 @@
+{
+  "$schema": "./ground_truth.schema.json",
+  "version": "2.0",
+  "description": "Kompleksowy zbiór danych referencyjnych (Ground Truth) do weryfikacji i trenowania reguł heurystycznych oraz OCR DocuLocker dla wszystkich sieci handlowych i formatów dokumentów",
+  "cases": [
+    {
+      "id": "biedronka_discounts_01",
+      "category": "grocery",
+      "store": "Biedronka",
+      "rawLines": [
+        "Jeronimo Martins Polska S.A.",
+        "ul. Zniwna 5, 62-025 Kostrzyn",
+        "Biedronka Sklep nr 1234",
+        "NIP: 779-10-11-327",
+        "2024-04-12 14:35 Kasa 2 Kasjer 04",
+        "PARAGON FISKALNY",
+        "MLEKO SWIEZE 3.2% 1 szt * 3.99 = 3.99 A",
+        "KAWA MIELONA 500G 1 szt * 24.99 = 24.99 A",
+        "RABAT MOJA BIEDRONKA: -5.00",
+        "CUKIER BIALY 1KG 2 szt * 4.50 = 9.00 A",
+        "SP. OPODATKOWANA A: 32.98",
+        "SUMA PTU: 6.17",
+        "SUMA PRZED RABATEM: 37.98",
+        "SUMA PLN: 32.98",
+        "DO ZAPLATY: 32.98 PLN",
+        "KARTA PLATNICZA: 32.98",
+        "ROZLICZENIE PLATNOSCI",
+        "BBD 12345678"
+      ],
+      "expected": {
+        "storeName": "Biedronka",
+        "totalAmount": 32.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-12",
+        "taxId": "7791011327",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "lidl_plus_coupon_02",
+      "category": "grocery",
+      "store": "Lidl",
+      "rawLines": [
+        "Lidl sp. z o.o. sp. k.",
+        "ul. Poznanska 48, 62-080 Jankowice",
+        "NIP 781-18-97-323",
+        "Sklep Lidl Warszawa",
+        "15.05.2024 18:20",
+        "PARAGON FISKALNY",
+        "CHLEB ZYTNI 1szt * 4.29 = 4.29 A",
+        "SER ZOLTY GOUDA 1szt * 8.99 = 8.99 A",
+        "KUPON LIDL PLUS -2.00",
+        "OPAKOWANIE KAUCJA 1.00",
+        "SUMA PLN: 12.28",
+        "DO ZAPLATY 12.28 PLN",
+        "KARTA: 12.28",
+        "EAS 98765432"
+      ],
+      "expected": {
+        "storeName": "Lidl",
+        "totalAmount": 12.28,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-15",
+        "taxId": "7811897323",
+        "categoryName": "Inne",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "media_expert_terg_03",
+      "category": "electronics",
+      "store": "Media Expert",
+      "rawLines": [
+        "TERG S.A.",
+        "ul. Za Dworcem 1D, 77-400 Zlotow",
+        "Market Media Expert Poznan",
+        "NIP: 618-21-48-886",
+        "BDO: 000012345",
+        "Data: 2024-06-01 11:15",
+        "PARAGON FISKALNY",
+        "SLUCHAWKI BEZPRZEWODOWE 1 szt * 299.99 = 299.99 A",
+        "GWARANCJA PLUS 24 MIESIACE",
+        "SUMA PTU A 23%: 56.10",
+        "SUMA PLN: 299.99",
+        "DO ZAPLATY: 299.99 PLN",
+        "ZAPLACONO KARTA: 299.99",
+        "POS 88776655"
+      ],
+      "expected": {
+        "storeName": "Media Expert",
+        "totalAmount": 299.99,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-01",
+        "taxId": "6182148886",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "rtv_euro_agd_euronet_04",
+      "category": "electronics",
+      "store": "RTV Euro AGD",
+      "rawLines": [
+        "Euro-net Sp. z o.o.",
+        "ul. Muszkieterow 15, 02-273 Warszawa",
+        "RTV EURO AGD Galeria Mokotow",
+        "NIP: 527-00-05-984",
+        "Data sprzedazy: 2024-02-20",
+        "PARAGON FISKALNY",
+        "CZAJNIK ELEKTRYCZNY 1szt * 149.90 = 149.90 A",
+        "RAZEM PLN: 149.90",
+        "DO ZAPLATY 149.90 PLN",
+        "KARTA: 149.90",
+        "PL 99881122"
+      ],
+      "expected": {
+        "storeName": "RTV Euro AGD",
+        "totalAmount": 149.9,
+        "currency": "PLN",
+        "purchaseDate": "2024-02-20",
+        "taxId": "5270005984",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "castorama_home_05",
+      "category": "home_diy",
+      "store": "Castorama",
+      "rawLines": [
+        "Castorama Polska Sp. z o.o.",
+        "ul. Krakowiakow 78, 02-255 Warszawa",
+        "NIP: 526-10-09-959",
+        "28.03.2024 16:45",
+        "PARAGON FISKALNY",
+        "FARBA AKRYLOWA BIALA 10L 1 szt * 89.98 = 89.98 A",
+        "WALER MALARSKI 1 szt * 15.50 = 15.50 A",
+        "SUMA PLN: 105.48",
+        "DO ZAPLATY: 105.48 PLN",
+        "PLATNOSC BLIK: 105.48"
+      ],
+      "expected": {
+        "storeName": "Castorama",
+        "totalAmount": 105.48,
+        "currency": "PLN",
+        "purchaseDate": "2024-03-28",
+        "taxId": "5261009959",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "ikea_receipt_06",
+      "category": "home_diy",
+      "store": "IKEA",
+      "rawLines": [
+        "IKEA Retail Sp. z o.o.",
+        "Pl. Szwedzki 3, 05-090 Raszyn",
+        "Sklep IKEA Janki",
+        "NIP 5270107448",
+        "Data: 10-01-2024",
+        "PARAGON FISKALNY",
+        "KRZESLO BIUROWE 1 szt * 499.00 = 499.00 A",
+        "SUMA PLN: 499.00",
+        "DO ZAPLATY 499.00 PLN"
+      ],
+      "expected": {
+        "storeName": "IKEA",
+        "totalAmount": 499,
+        "currency": "PLN",
+        "purchaseDate": "2024-01-10",
+        "taxId": "5270107448",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "decathlon_sport_07",
+      "category": "fashion_sports",
+      "store": "Decathlon",
+      "rawLines": [
+        "Decathlon Sp. z o.o.",
+        "ul. Geodezyjna 76, 03-290 Warszawa",
+        "NIP: 951-18-55-233",
+        "2024-05-02 12:00",
+        "PARAGON FISKALNY",
+        "BUTY DO BIEGANIA 1szt * 219.99 = 219.99 A",
+        "SKARPETKI SPORTOWE 1szt * 19.99 = 19.99 A",
+        "SUMA PLN: 239.98",
+        "DO ZAPLATY: 239.98 PLN",
+        "KARTA: 239.98"
+      ],
+      "expected": {
+        "storeName": "Decathlon",
+        "totalAmount": 239.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-02",
+        "taxId": "9511855233",
+        "categoryName": "Sport i Turystyka",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "rossmann_drugstore_08",
+      "category": "drugstores",
+      "store": "Rossmann",
+      "rawLines": [
+        "Rossmann SDP Sp. z o.o.",
+        "ul. Sw. Teresy 109, 91-222 Lodz",
+        "Drogeria Rossmann",
+        "NIP 727-00-19-198",
+        "22.04.2024",
+        "PARAGON FISKALNY",
+        "SZAMPON DO WLOSOW 1 szt * 18.49 = 18.49 A",
+        "PASTA DO ZEBOV 1 szt * 12.99 = 12.99 A",
+        "SUMA PLN: 31.48",
+        "DO ZAPLATY 31.48 PLN"
+      ],
+      "expected": {
+        "storeName": "Rossmann",
+        "totalAmount": 31.48,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-22",
+        "taxId": "7270019198",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "action_discount_09",
+      "category": "discount_variety",
+      "store": "Action",
+      "rawLines": [
+        "Action Polska Sp. z o.o.",
+        "ul. Wojewodzka 10, 40-026 Katowice",
+        "Sklep Action",
+        "NIP: 779-24-34-601",
+        "04-06-2024",
+        "PARAGON FISKALNY",
+        "KABEL USB-C 2M 1 szt * 14.95 = 14.95 A",
+        "BATERIE AA 10SZT 1 szt * 11.89 = 11.89 A",
+        "SUMA PLN: 26.84",
+        "DO ZAPLATY: 26.84 PLN"
+      ],
+      "expected": {
+        "storeName": "Action",
+        "totalAmount": 26.84,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-04",
+        "taxId": "7792434601",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "dino_grocery_10",
+      "category": "grocery",
+      "store": "Dino",
+      "rawLines": [
+        "DINO Polska S.A.",
+        "ul. Ostrowska 122, 63-700 Krotoszyn",
+        "NIP 693-21-55-983",
+        "2024-05-18",
+        "PARAGON FISKALNY",
+        "MASLO EKSTRA 1 szt * 6.99 = 6.99 A",
+        "JABŁKA POLSKIE 1.2kg * 3.50 = 4.20 A",
+        "SUMA PLN: 11.19",
+        "DO ZAPLATY 11.19 PLN"
+      ],
+      "expected": {
+        "storeName": "Dino",
+        "totalAmount": 11.19,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-18",
+        "taxId": "6932155983",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "zabka_convenience_11",
+      "category": "grocery",
+      "store": "Zabka",
+      "rawLines": [
+        "Zabka Polska Sp. z o.o.",
+        "Sklep Z6789 Poznan",
+        "NIP: 522-27-28-103",
+        "Data: 14.06.2024 08:30",
+        "PARAGON FISKALNY",
+        "HOT DOG DUZY 1 szt * 6.50 = 6.50 A",
+        "NAPOJ ENERGETYCZNY 1 szt * 4.99 = 4.99 A",
+        "SUMA PLN: 11.49",
+        "DO ZAPLATY 11.49 PLN",
+        "KARTA: 11.49"
+      ],
+      "expected": {
+        "storeName": "Zabka",
+        "totalAmount": 11.49,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-14",
+        "taxId": "5222728103",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "x_kom_computer_12",
+      "category": "electronics",
+      "store": "x-kom",
+      "rawLines": [
+        "x-kom sp. z o.o.",
+        "al. Pokoju 18, 42-200 Czestochowa",
+        "NIP: 949-21-07-026",
+        "Salon x-kom Warszawa Reduta",
+        "2024-03-10 13:45",
+        "PARAGON FISKALNY",
+        "MYSZ GAMINGOWA PRO 1 szt * 349.00 = 349.00 A",
+        "PODKLADKA POD MYSZ 1 szt * 69.99 = 69.99 A",
+        "SUMA PTU 23%: 78.35",
+        "SUMA PLN: 418.99",
+        "DO ZAPLATY: 418.99 PLN",
+        "ZAPLACONO KARTA: 418.99"
+      ],
+      "expected": {
+        "storeName": "x-kom",
+        "totalAmount": 418.99,
+        "currency": "PLN",
+        "purchaseDate": "2024-03-10",
+        "taxId": "9492107026",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "leroy_merlin_diy_13",
+      "category": "home_diy",
+      "store": "Leroy Merlin",
+      "rawLines": [
+        "Leroy Merlin Polska Sp. z o.o.",
+        "ul. Targowa 72, 03-734 Warszawa",
+        "NIP: 113-00-05-047",
+        "Data: 05-04-2024",
+        "PARAGON FISKALNY",
+        "WIERTARKA UDAROWA 750W 1 szt * 289.00 = 289.00 A",
+        "ZESTAW WIERTEŁ 1 szt * 45.00 = 45.00 A",
+        "SUMA PLN: 334.00",
+        "DO ZAPLATY: 334.00 PLN"
+      ],
+      "expected": {
+        "storeName": "Leroy Merlin",
+        "totalAmount": 334,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-05",
+        "taxId": "1130005047",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "orlen_gas_fuel_14",
+      "category": "gas_stations",
+      "store": "Orlen",
+      "rawLines": [
+        "ORLEN S.A.",
+        "Stacja Paliw nr 4567 Krakow",
+        "NIP: 774-00-01-454",
+        "Data sprzedazy: 2024-05-25 19:10",
+        "PARAGON FISKALNY",
+        "BENZYNA EFECTA 95 40.50 L * 6.59 = 266.90 A",
+        "KAWA DUZA 1 szt * 9.99 = 9.99 A",
+        "SUMA PTU A 23%: 51.78",
+        "SUMA PLN: 276.89",
+        "DO ZAPLATY 276.89 PLN",
+        "KARTA: 276.89"
+      ],
+      "expected": {
+        "storeName": "Orlen",
+        "totalAmount": 276.89,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-25",
+        "taxId": "7740001454",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "reserved_fashion_lpp_15",
+      "category": "fashion_sports",
+      "store": "Reserved",
+      "rawLines": [
+        "LPP S.A.",
+        "ul. Łakowa 39/44, 80-769 Gdansk",
+        "Salon RESERVED Zlote Tarasy",
+        "NIP: 583-10-14-898",
+        "12.06.2024 15:20",
+        "PARAGON FISKALNY",
+        "KOSZULA MESKA SLIM 1 szt * 139.99 = 139.99 A",
+        "SPODNIE CHINO 1 szt * 159.99 = 159.99 A",
+        "SUMA PLN: 299.98",
+        "DO ZAPLATY: 299.98 PLN",
+        "KARTA: 299.98"
+      ],
+      "expected": {
+        "storeName": "Reserved",
+        "totalAmount": 299.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-12",
+        "taxId": "5831014898",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "ccc_shoes_16",
+      "category": "fashion_sports",
+      "store": "CCC",
+      "rawLines": [
+        "CCC Shoes & Bags Sp. z o.o.",
+        "ul. Strefowa 6, 59-101 Polkowice",
+        "NIP: 692-22-01-324",
+        "Salon CCC Wroclavia",
+        "2024-04-30",
+        "PARAGON FISKALNY",
+        "POLBUTY SKORZANE 1 para * 199.99 = 199.99 A",
+        "IMPREGNAT DO OBUWIA 1 szt * 24.99 = 24.99 A",
+        "SUMA PLN: 224.98",
+        "DO ZAPLATY: 224.98 PLN"
+      ],
+      "expected": {
+        "storeName": "CCC",
+        "totalAmount": 224.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-30",
+        "taxId": "6922201324",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "empik_books_17",
+      "category": "discount_variety",
+      "store": "Empik",
+      "rawLines": [
+        "Empik S.A.",
+        "ul. Marszalkowska 104/122, 00-017 Warszawa",
+        "NIP: 526-02-07-427",
+        "08-05-2024 17:35",
+        "PARAGON FISKALNY",
+        "KSIAZKA BIOGRAFIA 1 szt * 49.90 = 49.90 B",
+        "PLANER ROCZNY 1 szt * 39.99 = 39.99 A",
+        "SUMA PLN: 89.89",
+        "DO ZAPLATY: 89.89 PLN"
+      ],
+      "expected": {
+        "storeName": "Empik",
+        "totalAmount": 89.89,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-08",
+        "taxId": "5260207427",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "hebe_cosmetics_18",
+      "category": "drugstores",
+      "store": "Hebe",
+      "rawLines": [
+        "Jeronimo Martins Drogerie i Farmacja Sp. z o.o.",
+        "Drogeria Hebe Galeria Krakowska",
+        "NIP: 521-36-05-417",
+        "Data: 2024-03-22",
+        "PARAGON FISKALNY",
+        "KREM NAWILZAJACY 50ML 1 szt * 54.99 = 54.99 A",
+        "SERUM WITAMINA C 1 szt * 42.50 = 42.50 A",
+        "SUMA PLN: 97.49",
+        "DO ZAPLATY 97.49 PLN"
+      ],
+      "expected": {
+        "storeName": "Hebe",
+        "totalAmount": 97.49,
+        "currency": "PLN",
+        "purchaseDate": "2024-03-22",
+        "taxId": "5213605417",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "pepco_variety_19",
+      "category": "discount_variety",
+      "store": "Pepco",
+      "rawLines": [
+        "Pepco Poland Sp. z o.o.",
+        "ul. Strzeszynska 73A, 60-479 Poznan",
+        "NIP: 782-21-31-141",
+        "Data: 19.04.2024",
+        "PARAGON FISKALNY",
+        "SWIECA ZAPACHOWA 1 szt * 15.00 = 15.00 A",
+        "RAMKA NA ZDJECIA 1 szt * 12.00 = 12.00 A",
+        "SUMA PLN: 27.00",
+        "DO ZAPLATY: 27.00 PLN"
+      ],
+      "expected": {
+        "storeName": "Pepco",
+        "totalAmount": 27,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-19",
+        "taxId": "7822131141",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "faktura_uproszczona_two_nips_20",
+      "category": "edge_cases",
+      "store": "Castorama",
+      "rawLines": [
+        "Castorama Polska Sp. z o.o.",
+        "ul. Krakowiakow 78, Warszawa",
+        "NIP: 526-10-09-959",
+        "2024-05-10 10:15",
+        "PARAGON FISKALNY",
+        "WKRETY HARTOWANE 500SZT 1 szt * 48.00 = 48.00 A",
+        "KLEJ MONTAZOWY 2 szt * 19.50 = 39.00 A",
+        "NIP NABYWCY: 1234567890",
+        "FAKTURA UPROSZCZONA",
+        "SUMA PLN: 87.00",
+        "DO ZAPLATY: 87.00 PLN"
+      ],
+      "expected": {
+        "storeName": "Castorama",
+        "totalAmount": 87,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-10",
+        "taxId": "5261009959",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "ocr_noise_suna_typo_21",
+      "category": "edge_cases",
+      "store": "Lidl",
+      "rawLines": [
+        "Lidl sp. z o.o.",
+        "NIP 781-18-97-323",
+        "2024-06-05",
+        "PARAGON FISKALNY",
+        "SOK JABLKOWY 4.50",
+        "CIASTKA MAŚLANE 8.90",
+        "SUNA PLN 13,40",
+        "KARTA: 13.40"
+      ],
+      "expected": {
+        "storeName": "Lidl",
+        "totalAmount": 13.4,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-05",
+        "taxId": "7811897323",
+        "categoryName": "Inne",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "thousand_separator_high_value_22",
+      "category": "electronics",
+      "store": "MediaMarkt",
+      "rawLines": [
+        "Media Saturn Online Sp. z o.o.",
+        "MediaMarkt Warszawa",
+        "NIP: 701-03-27-611",
+        "Data: 2024-05-12",
+        "PARAGON FISKALNY",
+        "TELEWIZOR OLED 55 CALI 1 szt * 3 999.00",
+        "SUMA PTU 23%: 747.78",
+        "SUMA PLN: 3 999,00",
+        "DO ZAPLATY: 3 999,00 PLN"
+      ],
+      "expected": {
+        "storeName": "MediaMarkt",
+        "totalAmount": 3999,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-12",
+        "taxId": "7010327611",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "auchan_hypermarket_23",
+      "category": "grocery",
+      "store": "Auchan",
+      "rawLines": [
+        "Auchan Polska Sp. z o.o.",
+        "ul. Pulawska 46, 05-500 Piaseczno",
+        "Hipermarket Auchan",
+        "NIP: 526-03-09-174",
+        "18.06.2024 16:30",
+        "PARAGON FISKALNY",
+        "PROSZEK DO PRANIA 5KG 1 szt * 49.99 = 49.99 A",
+        "OLEJ RZEPAKOWY 1L 2 szt * 7.50 = 15.00 A",
+        "SUMA PLN: 64.99",
+        "DO ZAPLATY: 64.99 PLN",
+        "KARTA: 64.99"
+      ],
+      "expected": {
+        "storeName": "Auchan",
+        "totalAmount": 64.99,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-18",
+        "taxId": "5260309174",
+        "categoryName": "Inne",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "carrefour_market_24",
+      "category": "grocery",
+      "store": "Carrefour",
+      "rawLines": [
+        "Carrefour Polska Sp. z o.o.",
+        "ul. Targowa 72, Warszawa",
+        "NIP: 937-00-08-168",
+        "Data: 2024-05-04",
+        "PARAGON FISKALNY",
+        "WODA MINERALNA ZGRZEWKA 1 szt * 14.40 = 14.40 A",
+        "BANANY BIO 1.5kg * 5.99 = 8.99 A",
+        "SUMA PLN: 23.39",
+        "DO ZAPLATY 23.39 PLN"
+      ],
+      "expected": {
+        "storeName": "Carrefour",
+        "totalAmount": 23.39,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-04",
+        "taxId": "9370008168",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "kaufland_grocery_25",
+      "category": "grocery",
+      "store": "Kaufland",
+      "rawLines": [
+        "Kaufland Polska Markety Sp. z o.o. Sp. k.",
+        "al. Armii Krajowej 47, 50-541 Wroclaw",
+        "NIP 625-22-58-832",
+        "29.04.2024 11:20",
+        "PARAGON FISKALNY",
+        "KAWA ZIARNISTA 1KG 1 szt * 59.99 = 59.99 A",
+        "HERBATA CZARNA 100TOB 1 szt * 16.99 = 16.99 A",
+        "SUMA PLN: 76.98",
+        "DO ZAPLATY: 76.98 PLN"
+      ],
+      "expected": {
+        "storeName": "Kaufland",
+        "totalAmount": 76.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-29",
+        "taxId": "6252258832",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "netto_discount_26",
+      "category": "grocery",
+      "store": "Netto",
+      "rawLines": [
+        "Netto Sp. z o.o.",
+        "ul. Motaniec 30, 73-108 Kobylanka",
+        "NIP: 852-04-01-824",
+        "02-05-2024",
+        "PARAGON FISKALNY",
+        "SER MOZZARELLA 2 szt * 3.49 = 6.98 A",
+        "POMIDORY MALINOWE 1kg * 12.99 = 12.99 A",
+        "SUMA PLN: 19.97",
+        "DO ZAPLATY: 19.97 PLN"
+      ],
+      "expected": {
+        "storeName": "Netto",
+        "totalAmount": 19.97,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-02",
+        "taxId": "8520401824",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "aldi_discount_27",
+      "category": "grocery",
+      "store": "Aldi",
+      "rawLines": [
+        "ALDI Sp. z o.o.",
+        "ul. Niedzwiedziniec 10, 41-506 Chorzow",
+        "NIP 852-24-36-894",
+        "Data: 16.05.2024",
+        "PARAGON FISKALNY",
+        "CZEKOLADA GORZKA 2 szt * 5.49 = 10.98 A",
+        "ORZECHY WLOSKIE 200G 1 szt * 11.99 = 11.99 A",
+        "SUMA PLN: 22.97",
+        "DO ZAPLATY 22.97 PLN"
+      ],
+      "expected": {
+        "storeName": "Aldi",
+        "totalAmount": 22.97,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-16",
+        "taxId": "8522436894",
+        "categoryName": "Inne",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "superpharm_health_28",
+      "category": "drugstores",
+      "store": "Super-Pharm",
+      "rawLines": [
+        "Super-Pharm Poland Sp. z o.o.",
+        "ul. Domaniewska 48, Warszawa",
+        "NIP: 521-31-64-998",
+        "2024-05-21 14:10",
+        "PARAGON FISKALNY",
+        "WITAMINA D3 4000IU 1 szt * 29.99 = 29.99 A",
+        "BALSAM DO CIALA 400ML 1 szt * 34.50 = 34.50 A",
+        "SUMA PLN: 64.49",
+        "DO ZAPLATY: 64.49 PLN"
+      ],
+      "expected": {
+        "storeName": "Super-Pharm",
+        "totalAmount": 64.49,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-21",
+        "taxId": "5213164998",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "obi_garden_home_29",
+      "category": "home_diy",
+      "store": "OBI",
+      "rawLines": [
+        "Superhobby Market Budowlany Sp. z o.o.",
+        "Market OBI Warszawa Okecie",
+        "NIP: 951-10-08-094",
+        "Data: 11-05-2024",
+        "PARAGON FISKALNY",
+        "KOSIARKA ELEKTRYCZNA 1 szt * 399.00 = 399.00 A",
+        "PRZEDLUZACZ OGRODOWY 20M 1 szt * 69.00 = 69.00 A",
+        "SUMA PLN: 468.00",
+        "DO ZAPLATY: 468.00 PLN"
+      ],
+      "expected": {
+        "storeName": "OBI",
+        "totalAmount": 468,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-11",
+        "taxId": "9511008094",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "jysk_furniture_30",
+      "category": "home_diy",
+      "store": "JYSK",
+      "rawLines": [
+        "JYSK Sp. z o.o.",
+        "ul. Meteorytowa 13, 80-299 Gdansk",
+        "NIP: 586-20-16-372",
+        "2024-04-18 13:00",
+        "PARAGON FISKALNY",
+        "PODUSZKA ERGONOMICZNA 2 szt * 85.00 = 170.00 A",
+        "POSZEWKA NA JASIEK 2 szt * 15.00 = 30.00 A",
+        "SUMA PLN: 200.00",
+        "DO ZAPLATY 200.00 PLN"
+      ],
+      "expected": {
+        "storeName": "JYSK",
+        "totalAmount": 200,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-18",
+        "taxId": "5862016372",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "sinsay_fashion_31",
+      "category": "fashion_sports",
+      "store": "Sinsay",
+      "rawLines": [
+        "LPP S.A.",
+        "Salon SINSAY Posnania",
+        "NIP: 583-10-14-898",
+        "Data: 06.06.2024",
+        "PARAGON FISKALNY",
+        "KOSZULKA BASIC 3-PACK 1 szt * 39.99 = 39.99 A",
+        "SZORTY JEANSOWE 1 szt * 49.99 = 49.99 A",
+        "SUMA PLN: 89.98",
+        "DO ZAPLATY: 89.98 PLN"
+      ],
+      "expected": {
+        "storeName": "Sinsay",
+        "totalAmount": 89.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-06",
+        "taxId": "5831014898",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "halfprice_brand_32",
+      "category": "fashion_sports",
+      "store": "HalfPrice",
+      "rawLines": [
+        "CCC Shoes & Bags Sp. z o.o.",
+        "Sklep HalfPrice Warszawa",
+        "NIP: 692-22-01-324",
+        "15.05.2024 19:40",
+        "PARAGON FISKALNY",
+        "BLUZA Z KAPTUREM PREMIUM 1 szt * 179.99 = 179.99 A",
+        "CZAPKA Z DASZKIEM 1 szt * 49.99 = 49.99 A",
+        "SUMA PLN: 229.98",
+        "DO ZAPLATY: 229.98 PLN"
+      ],
+      "expected": {
+        "storeName": "HalfPrice",
+        "totalAmount": 229.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-15",
+        "taxId": "6922201324",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "martes_sport_33",
+      "category": "fashion_sports",
+      "store": "Martes Sport",
+      "rawLines": [
+        "Martes Sport Sp. z o.o.",
+        "ul. Malowany Dworek 8, 43-300 Bielsko-Biala",
+        "NIP: 547-17-94-695",
+        "2024-05-09",
+        "PARAGON FISKALNY",
+        "PLECAK TURYSTYCZNY 30L 1 szt * 129.99 = 129.99 A",
+        "BIDON TERMICZNY 1 szt * 39.99 = 39.99 A",
+        "SUMA PLN: 169.98",
+        "DO ZAPLATY 169.98 PLN"
+      ],
+      "expected": {
+        "storeName": "Martes Sport",
+        "totalAmount": 169.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-09",
+        "taxId": "5471794695",
+        "categoryName": "Sport i Turystyka",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "four_f_otcf_34",
+      "category": "fashion_sports",
+      "store": "4F",
+      "rawLines": [
+        "OTCF S.A.",
+        "ul. Saska 25A, 30-720 Krakow",
+        "Salon 4F Galeria Baltycka",
+        "NIP: 945-19-78-451",
+        "Data: 23-04-2024",
+        "PARAGON FISKALNY",
+        "LEGINSY TRENINGOWE 1 szt * 119.99 = 119.99 A",
+        "KOSZULKA TERMOAKTYWNA 1 szt * 79.99 = 79.99 A",
+        "SUMA PLN: 199.98",
+        "DO ZAPLATY: 199.98 PLN"
+      ],
+      "expected": {
+        "storeName": "4F",
+        "totalAmount": 199.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-23",
+        "taxId": "9451978451",
+        "categoryName": "Sport i Turystyka",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "bp_gas_station_35",
+      "category": "gas_stations",
+      "store": "BP",
+      "rawLines": [
+        "BP Europa SE Oddzial w Polsce",
+        "ul. Jasnogorska 1, 31-358 Krakow",
+        "Stacja BP Warszawa",
+        "NIP: 526-24-15-199",
+        "2024-06-02 21:15",
+        "PARAGON FISKALNY",
+        "ULTIMATE DIESEL 45.00L * 7.15 = 321.75 A",
+        "PLYN DO SPRYSKIWACZY 4L 1 szt * 24.99 = 24.99 A",
+        "SUMA PLN: 346.74",
+        "DO ZAPLATY 346.74 PLN"
+      ],
+      "expected": {
+        "storeName": "BP",
+        "totalAmount": 346.74,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-02",
+        "taxId": "5262415199",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "stokrotka_grocery_36",
+      "category": "grocery",
+      "store": "Stokrotka",
+      "rawLines": [
+        "Stokrotka Sp. z o.o.",
+        "ul. Projektowa 1, 20-209 Lublin",
+        "Supermarket Stokrotka nr 451",
+        "NIP: 712-28-92-695",
+        "2024-09-18 16:22 Kasa 1",
+        "PARAGON FISKALNY",
+        "SER ZOLTY GOUDA 1 szt * 6.49 = 6.49 A",
+        "SOK JABLKOWY 100% 2 szt * 4.29 = 8.58 A",
+        "JOGURT NATURALNY 1 szt * 2.19 = 2.19 A",
+        "SP. OPODATKOWANA A: 17.26",
+        "SUMA PTU: 3.23",
+        "SUMA PLN: 17.26",
+        "DO ZAPLATY: 17.26 PLN",
+        "KARTA: 17.26",
+        "ROZLICZENIE PLATNOSCI",
+        "BBD 88291024"
+      ],
+      "expected": {
+        "storeName": "Stokrotka",
+        "totalAmount": 17.26,
+        "currency": "PLN",
+        "purchaseDate": "2024-09-18",
+        "taxId": "7122892695",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "polomarket_grocery_37",
+      "category": "grocery",
+      "store": "Polomarket",
+      "rawLines": [
+        "POLOMARKET Sp. z o.o.",
+        "Giebnia 20, 88-170 Pakosc",
+        "Sklep Polomarket 112",
+        "NIP: 556-21-82-044",
+        "2024-10-05 11:45 Kasa 3",
+        "PARAGON FISKALNY",
+        "PIECZYWO CHLEB WIEJSKI 1 * 4.19 = 4.19 A",
+        "MASLO EKSTRA 200G 1 * 7.99 = 7.99 A",
+        "HERBATA CZARNA 100T 1 * 12.50 = 12.50 A",
+        "SP. OPODATKOWANA A: 24.68",
+        "SUMA PTU: 4.61",
+        "SUMA PLN: 24.68",
+        "DO ZAPLATY: 24.68 PLN",
+        "GOTOWKA: 50.00",
+        "RESZTA: 25.32"
+      ],
+      "expected": {
+        "storeName": "Polomarket",
+        "totalAmount": 24.68,
+        "currency": "PLN",
+        "purchaseDate": "2024-10-05",
+        "taxId": "5562182044",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "lewiatan_grocery_38",
+      "category": "grocery",
+      "store": "Lewiatan",
+      "rawLines": [
+        "Lewiatan Wielkopolska Sp. z o.o.",
+        "ul. Polna 12, 60-185 Skórzewo",
+        "Sklep Lewiatan Market",
+        "NIP: 779-21-30-386",
+        "2024-08-20 18:03 Kasa 02",
+        "PARAGON FISKALNY",
+        "WODA MINERALNA 1.5L 6 szt * 1.99 = 11.94 A",
+        "HERBATNIKI 200G 2 szt * 3.49 = 6.98 A",
+        "SP. A: 18.92 PTU: 3.54",
+        "SUMA PTU: 3.54",
+        "SUMA PLN: 18.92",
+        "DO ZAPLATY: 18.92 PLN",
+        "KARTA: 18.92"
+      ],
+      "expected": {
+        "storeName": "Lewiatan",
+        "totalAmount": 18.92,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-20",
+        "taxId": "7792130386",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "eleclerc_hypermarket_39",
+      "category": "grocery",
+      "store": "E.Leclerc",
+      "rawLines": [
+        "Scawar Sp. z o.o. E.Leclerc",
+        "ul. Jutrzenki 156, 02-231 Warszawa",
+        "Hipermarket E.Leclerc",
+        "NIP: 525-21-87-680",
+        "2024-07-14 13:10 Kasa 14",
+        "PARAGON FISKALNY",
+        "PROSZEK DO PRANIA 3KG 1 * 44.99 = 44.99 A",
+        "PLYN DO PLUKANIA 1.8L 1 * 18.99 = 18.99 A",
+        "RECZNIK PAPIEROWY 2R 1 * 9.99 = 9.99 A",
+        "SP. OPODATKOWANA A: 73.97",
+        "SUMA PTU: 13.83",
+        "SUMA PLN: 73.97",
+        "DO ZAPLATY: 73.97 PLN",
+        "KARTA VISA: 73.97"
+      ],
+      "expected": {
+        "storeName": "E.Leclerc",
+        "totalAmount": 73.97,
+        "currency": "PLN",
+        "purchaseDate": "2024-07-14",
+        "taxId": "5252187680",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "komputronik_electronics_40",
+      "category": "electronics",
+      "store": "Komputronik",
+      "rawLines": [
+        "Komputronik S.A.",
+        "ul. Wolczynska 37, 60-003 Poznan",
+        "Salon Komputronik Galeria Mokotow",
+        "NIP: 972-09-03-043",
+        "2024-05-19 14:15 Kasa 1",
+        "PARAGON FISKALNY",
+        "DYSK SSD 1TB NVME M.2 1 szt * 349.00 = 349.00 A",
+        "KABEL HDMI 2.1 2M 1 szt * 49.99 = 49.99 A",
+        "SP. OPODATKOWANA A: 398.99",
+        "SUMA PTU: 74.61",
+        "SUMA PLN: 398.99",
+        "DO ZAPLATY: 398.99 PLN",
+        "KARTA PLATNICZA: 398.99"
+      ],
+      "expected": {
+        "storeName": "Komputronik",
+        "totalAmount": 398.99,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-19",
+        "taxId": "9720903043",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "neonet_electronics_41",
+      "category": "electronics",
+      "store": "Neonet",
+      "rawLines": [
+        "NEONET S.A. w restrukturyzacji",
+        "ul. Nyska 48, 50-505 Wroclaw",
+        "Salon Neonet 302",
+        "NIP: 895-17-86-278",
+        "2024-06-22 17:40 Kasa 01",
+        "PARAGON FISKALNY",
+        "CZAJNIK ELEKTRYCZNY 1.7L 1 szt * 129.99 = 129.99 A",
+        "TOSTER OPIEKACZ 2-SKL 1 szt * 89.99 = 89.99 A",
+        "SP. OPODATKOWANA A: 219.98",
+        "SUMA PTU: 41.13",
+        "SUMA PLN: 219.98",
+        "DO ZAPLATY: 219.98 PLN",
+        "BLIK: 219.98"
+      ],
+      "expected": {
+        "storeName": "Neonet",
+        "totalAmount": 219.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-22",
+        "taxId": "8951786278",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "agata_meble_home_42",
+      "category": "home_diy",
+      "store": "Agata Meble",
+      "rawLines": [
+        "AGATA S.A.",
+        "Al. Rozdzienskiego 93, 40-203 Katowice",
+        "Salon Agata Meble Krakow",
+        "NIP: 634-01-97-476",
+        "2024-04-30 12:20 Kasa 04",
+        "PARAGON FISKALNY",
+        "KRZESLO TAPICEROWANE VELVET 2 szt * 249.00 = 498.00 A",
+        "PODUSZKA DEKORACYJNA 45X45 2 szt * 39.99 = 79.98 A",
+        "SP. A: 577.98",
+        "SUMA PTU: 108.08",
+        "SUMA PLN: 577.98",
+        "DO ZAPLATY: 577.98 PLN",
+        "KARTA: 577.98"
+      ],
+      "expected": {
+        "storeName": "Agata Meble",
+        "totalAmount": 577.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-04-30",
+        "taxId": "6340197476",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "brw_furniture_43",
+      "category": "home_diy",
+      "store": "Black Red White",
+      "rawLines": [
+        "BLACK RED WHITE S.A.",
+        "ul. Krzeszowska 63, 23-400 Bilgoraj",
+        "Salon Meblowy BRW",
+        "NIP: 918-00-16-654",
+        "2024-03-12 15:55 Kasa 2",
+        "PARAGON FISKALNY",
+        "POLKA WISZACA DABB 1 szt * 149.00 = 149.00 A",
+        "KOMPLET WIESZAKOW 10SZ 1 szt * 29.90 = 29.90 A",
+        "SP. OPODATKOWANA A: 178.90",
+        "SUMA PTU: 33.45",
+        "SUMA PLN: 178.90",
+        "DO ZAPLATY: 178.90 PLN",
+        "KARTA PLATNICZA: 178.90"
+      ],
+      "expected": {
+        "storeName": "Black Red White",
+        "totalAmount": 178.9,
+        "currency": "PLN",
+        "purchaseDate": "2024-03-12",
+        "taxId": "9180016654",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "bricomarche_diy_44",
+      "category": "home_diy",
+      "store": "Bricomarché",
+      "rawLines": [
+        "Bricomarche Supermarket Dom i Ogrod",
+        "ul. Poznanska 3, 62-020 Swarzedz",
+        "NIP: 777-26-48-750",
+        "2024-05-08 10:14 Kasa 1",
+        "PARAGON FISKALNY",
+        "FARBA LATEKSOWA BIALA 10L 1 * 139.99 = 139.99 A",
+        "WALKI MALARSKIE ZESTAW 1 * 34.50 = 34.50 A",
+        "FOLIA MALARSKA GRUBA 1 * 12.00 = 12.00 A",
+        "SP. A: 186.49 PTU: 34.87",
+        "SUMA PTU: 34.87",
+        "SUMA PLN: 186.49",
+        "DO ZAPLATY: 186.49 PLN",
+        "KARTA: 186.49"
+      ],
+      "expected": {
+        "storeName": "Bricomarché",
+        "totalAmount": 186.49,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-08",
+        "taxId": "7772648750",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "zara_inditex_fashion_45",
+      "category": "fashion_sports",
+      "store": "Zara",
+      "rawLines": [
+        "ITX POLSKA Sp. z o.o.",
+        "ul. Chmielna 25, 00-021 Warszawa",
+        "ZARA Zlote Tarasy",
+        "NIP: 525-22-77-883",
+        "2024-09-02 17:35 Kasa 03",
+        "PARAGON FISKALNY",
+        "KOSZULA LNIANA SLIM FIT 1 * 199.00 = 199.00 A",
+        "SPODNIE CHINO BEZOWE 1 * 179.00 = 179.00 A",
+        "SP. OPODATKOWANA A: 378.00",
+        "SUMA PTU: 70.68",
+        "SUMA PLN: 378.00",
+        "DO ZAPLATY: 378.00 PLN",
+        "KARTA VISA: 378.00"
+      ],
+      "expected": {
+        "storeName": "Zara",
+        "totalAmount": 378,
+        "currency": "PLN",
+        "purchaseDate": "2024-09-02",
+        "taxId": "5252277883",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "hm_fashion_46",
+      "category": "fashion_sports",
+      "store": "H&M",
+      "rawLines": [
+        "H&M Hennes & Mauritz Sp. z o.o.",
+        "ul. Marszalkowska 104/122, 00-017 Warszawa",
+        "Sklep H&M Arkadia",
+        "NIP: 525-22-53-240",
+        "2024-06-15 13:42 Kasa 2 Kasjer 08",
+        "PARAGON FISKALNY",
+        "T-SHIRT COTTON REGULAR 2 szt * 39.99 = 79.98 A",
+        "BLUZA Z KAPTUREM 1 szt * 129.99 = 129.99 A",
+        "SP. A: 209.97",
+        "SUMA PTU: 39.26",
+        "SUMA PLN: 209.97",
+        "DO ZAPLATY: 209.97 PLN",
+        "KARTA: 209.97"
+      ],
+      "expected": {
+        "storeName": "H&M",
+        "totalAmount": 209.97,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-15",
+        "taxId": "5252253240",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "tkmaxx_offprice_47",
+      "category": "fashion_sports",
+      "store": "TK Maxx",
+      "rawLines": [
+        "TJX POLAND Sp. z o.o.",
+        "Al. Jerozolimskie 179, 02-222 Warszawa",
+        "TK Maxx Galeria Baltycka",
+        "NIP: 525-24-45-778",
+        "2024-08-04 16:11 Kasa 04",
+        "PARAGON FISKALNY",
+        "SWETER KASZMIR PREMIUM 1 * 199.99 = 199.99 A",
+        "SWIECA ZAPACHOWA HOME 1 * 44.99 = 44.99 A",
+        "SP. OPODATKOWANA A: 244.98",
+        "SUMA PTU: 45.81",
+        "SUMA PLN: 244.98",
+        "DO ZAPLATY: 244.98 PLN",
+        "KARTA MASTERCARD: 244.98"
+      ],
+      "expected": {
+        "storeName": "TK Maxx",
+        "totalAmount": 244.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-04",
+        "taxId": "5252445778",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 28
+      }
+    },
+    {
+      "id": "deichmann_shoes_48",
+      "category": "fashion_sports",
+      "store": "Deichmann",
+      "rawLines": [
+        "Deichmann-Obuwie Sp. z o.o.",
+        "ul. Lotnicza 12, 54-155 Wroclaw",
+        "Salon Deichmann Manufaktura",
+        "NIP: 954-22-40-974",
+        "2024-05-25 18:30 Kasa 1",
+        "PARAGON FISKALNY",
+        "BUTY SPORTOWE MĘSKIE 1 * 159.99 = 159.99 A",
+        "IMPREGNAT DO OBUWIA 1 * 19.99 = 19.99 A",
+        "SKARPETKI 3-PAK 1 * 14.99 = 14.99 A",
+        "SP. A: 194.97",
+        "SUMA PTU: 36.46",
+        "SUMA PLN: 194.97",
+        "DO ZAPLATY: 194.97 PLN",
+        "KARTA: 194.97"
+      ],
+      "expected": {
+        "storeName": "Deichmann",
+        "totalAmount": 194.97,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-25",
+        "taxId": "9542240974",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "cropp_fashion_49",
+      "category": "fashion_sports",
+      "store": "Cropp",
+      "rawLines": [
+        "LPP S.A.",
+        "ul. Lakowa 39/44, 80-769 Gdansk",
+        "Sklep Cropp Galeria Katowicka",
+        "NIP: 583-10-14-898",
+        "2024-07-29 15:40 Kasa 2",
+        "PARAGON FISKALNY",
+        "KOSZULKA GRAFIKA 1 szt * 59.99 = 59.99 A",
+        "CZAPKA BEANIE 1 szt * 39.99 = 39.99 A",
+        "SP. OPODATKOWANA A: 99.98",
+        "SUMA PTU: 18.69",
+        "SUMA PLN: 99.98",
+        "DO ZAPLATY: 99.98 PLN",
+        "KARTA: 99.98"
+      ],
+      "expected": {
+        "storeName": "Cropp",
+        "totalAmount": 99.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-07-29",
+        "taxId": "5831014898",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "house_fashion_50",
+      "category": "fashion_sports",
+      "store": "House",
+      "rawLines": [
+        "LPP S.A.",
+        "ul. Lakowa 39/44, 80-769 Gdansk",
+        "Sklep House Posnania",
+        "NIP: 583-10-14-898",
+        "2024-06-18 19:12 Kasa 1",
+        "PARAGON FISKALNY",
+        "KOSZULA FLANELOWA W KRATE 1 * 119.99 = 119.99 A",
+        "PASEK SKORZANY 1 * 49.99 = 49.99 A",
+        "SP. A: 169.98",
+        "SUMA PTU: 31.78",
+        "SUMA PLN: 169.98",
+        "DO ZAPLATY: 169.98 PLN",
+        "BLIK: 169.98"
+      ],
+      "expected": {
+        "storeName": "House",
+        "totalAmount": 169.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-18",
+        "taxId": "5831014898",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "mohito_fashion_51",
+      "category": "fashion_sports",
+      "store": "Mohito",
+      "rawLines": [
+        "LPP S.A.",
+        "ul. Lakowa 39/44, 80-769 Gdansk",
+        "Salon Mohito Magnolia Park",
+        "NIP: 583-10-14-898",
+        "2024-08-11 14:05 Kasa 02",
+        "PARAGON FISKALNY",
+        "SUKIENKA WIECZOROWA 1 * 229.99 = 229.99 A",
+        "TOREBKA KOPERTOWKA 1 * 99.99 = 99.99 A",
+        "SP. OPODATKOWANA A: 329.98",
+        "SUMA PTU: 61.70",
+        "SUMA PLN: 329.98",
+        "DO ZAPLATY: 329.98 PLN",
+        "KARTA PLATNICZA: 329.98"
+      ],
+      "expected": {
+        "storeName": "Mohito",
+        "totalAmount": 329.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-11",
+        "taxId": "5831014898",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "eobuwie_footwear_52",
+      "category": "fashion_sports",
+      "store": "eobuwie",
+      "rawLines": [
+        "MODIVO S.A.",
+        "Nowy Kisielin - Nowa 9, 66-002 Zielona Gora",
+        "Sklep eobuwie.pl Wroclavia",
+        "NIP: 929-16-53-958",
+        "2024-07-06 17:50 Kasa 3",
+        "PARAGON FISKALNY",
+        "SNEAKERSY SKORZANE NEW BALANCE 1 * 429.99 = 429.99 A",
+        "CZYSZCZAK DO ZAMSZU 1 * 24.99 = 24.99 A",
+        "SP. A: 454.98",
+        "SUMA PTU: 85.08",
+        "SUMA PLN: 454.98",
+        "DO ZAPLATY: 454.98 PLN",
+        "KARTA: 454.98"
+      ],
+      "expected": {
+        "storeName": "eobuwie",
+        "totalAmount": 454.98,
+        "currency": "PLN",
+        "purchaseDate": "2024-07-06",
+        "taxId": "9291653958",
+        "categoryName": "Odzież i Obuwie",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "douglas_perfumery_53",
+      "category": "drugstores",
+      "store": "Douglas",
+      "rawLines": [
+        "Douglas Polska Sp. z o.o.",
+        "ul. Zajecza 4, 00-378 Warszawa",
+        "Perfumeria Douglas Zlote Tarasy",
+        "NIP: 526-25-07-850",
+        "2024-09-14 16:20 Kasa 1",
+        "PARAGON FISKALNY",
+        "WODA PERFUMOWANA EDP 50ML 1 * 389.00 = 389.00 A",
+        "KREM NAWILZAJACY 50ML 1 * 149.00 = 149.00 A",
+        "SP. OPODATKOWANA A: 538.00",
+        "SUMA PTU: 100.60",
+        "SUMA PLN: 538.00",
+        "DO ZAPLATY: 538.00 PLN",
+        "KARTA: 538.00"
+      ],
+      "expected": {
+        "storeName": "Douglas",
+        "totalAmount": 538,
+        "currency": "PLN",
+        "purchaseDate": "2024-09-14",
+        "taxId": "5262507850",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "sephora_beauty_54",
+      "category": "drugstores",
+      "store": "Sephora",
+      "rawLines": [
+        "Sephora Polska Sp. z o.o.",
+        "ul. Zolkiewskiego 17, 04-305 Warszawa",
+        "Perfumeria Sephora Westfield Arkadia",
+        "NIP: 526-22-76-326",
+        "2024-08-25 18:04 Kasa 02",
+        "PARAGON FISKALNY",
+        "PALETA CIENI DO POWIEK 1 * 265.00 = 265.00 A",
+        "BALSAM DO UST GLOSS 1 * 75.00 = 75.00 A",
+        "SP. A: 340.00 PTU: 63.58",
+        "SUMA PTU: 63.58",
+        "SUMA PLN: 340.00",
+        "DO ZAPLATY: 340.00 PLN",
+        "KARTA VISA: 340.00"
+      ],
+      "expected": {
+        "storeName": "Sephora",
+        "totalAmount": 340,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-25",
+        "taxId": "5262276326",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "doz_pharmacy_55",
+      "category": "drugstores",
+      "store": "DOZ Apteka",
+      "rawLines": [
+        "DOZ S.A.",
+        "ul. Kinga C. O'Neala 2, 92-414 Lodz",
+        "Apteka DOZ Dbam o Zdrowie",
+        "NIP: 728-27-98-150",
+        "2024-05-11 09:30 Kasa 1",
+        "PARAGON FISKALNY",
+        "WITAMINA D3 4000 IU 1 * 29.99 = 29.99 B",
+        "MAGNEZ B6 FORTE 60TAB 1 * 24.50 = 24.50 B",
+        "IBUPROFEN 400MG 20TAB 1 * 14.20 = 14.20 B",
+        "SP. OPODATKOWANA B: 68.69",
+        "SUMA PTU: 5.09",
+        "SUMA PLN: 68.69",
+        "DO ZAPLATY: 68.69 PLN",
+        "KARTA: 68.69"
+      ],
+      "expected": {
+        "storeName": "DOZ Apteka",
+        "totalAmount": 68.69,
+        "currency": "PLN",
+        "purchaseDate": "2024-05-11",
+        "taxId": "7282798150",
+        "categoryName": "Zdrowie i Apteka",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "dealz_variety_56",
+      "category": "discount_variety",
+      "store": "Dealz",
+      "rawLines": [
+        "Dealz Poland Sp. z o.o.",
+        "ul. Strzeszynska 73A, 60-479 Poznan",
+        "Sklep Dealz 504",
+        "NIP: 972-12-83-626",
+        "2024-06-30 11:25 Kasa 1",
+        "PARAGON FISKALNY",
+        "CZEKOLADA BUBBLY 1 szt * 6.00 = 6.00 A",
+        "NAPOJ GAZOWANY 1.75L 1 szt * 8.00 = 8.00 A",
+        "ZAWIESZKA DO WC 2PK 1 szt * 10.00 = 10.00 A",
+        "SP. A: 24.00",
+        "SUMA PTU: 4.49",
+        "SUMA PLN: 24.00",
+        "DO ZAPLATY: 24.00 PLN",
+        "GOTOWKA: 50.00 RESZTA: 26.00"
+      ],
+      "expected": {
+        "storeName": "Dealz",
+        "totalAmount": 24,
+        "currency": "PLN",
+        "purchaseDate": "2024-06-30",
+        "taxId": "9721283626",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "tedi_discount_57",
+      "category": "discount_variety",
+      "store": "Tedi",
+      "rawLines": [
+        "TEDi Siec Handlowa Sp. z o.o.",
+        "ul. 11 Listopada 11, 40-387 Katowice",
+        "Sklep TEDi 123",
+        "NIP: 779-24-87-425",
+        "2024-08-17 15:45 Kasa 2",
+        "PARAGON FISKALNY",
+        "ORGANIZER NA BIURKO 1 * 18.00 = 18.00 A",
+        "DLUGOPISY ZELOWE 6SZT 1 * 9.00 = 9.00 A",
+        "NOTES A5 W LINIE 1 * 6.00 = 6.00 A",
+        "SP. OPODATKOWANA A: 33.00",
+        "SUMA PTU: 6.17",
+        "SUMA PLN: 33.00",
+        "DO ZAPLATY: 33.00 PLN",
+        "KARTA: 33.00"
+      ],
+      "expected": {
+        "storeName": "Tedi",
+        "totalAmount": 33,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-17",
+        "taxId": "7792487425",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "shell_gas_station_58",
+      "category": "gas_stations",
+      "store": "Shell",
+      "rawLines": [
+        "Shell Polska Sp. z o.o.",
+        "ul. Bitwy Warszawskiej 1920 r. 7A, 02-366 Warszawa",
+        "Stacja Paliw Shell 4012",
+        "NIP: 526-10-09-190",
+        "2024-09-22 08:44 Kasa 1",
+        "PARAGON FISKALNY",
+        "SHELL V-POWER 95 42.15L * 6.89 = 290.41 A",
+        "KAWA DUZA FLAT WHITE 1 * 12.99 = 12.99 A",
+        "HOT DOG GIGANT 1 * 11.99 = 11.99 A",
+        "SP. OPODATKOWANA A: 315.39",
+        "SUMA PTU: 58.98",
+        "SUMA PLN: 315.39",
+        "DO ZAPLATY: 315.39 PLN",
+        "KARTA FLOTOWA: 315.39"
+      ],
+      "expected": {
+        "storeName": "Shell",
+        "totalAmount": 315.39,
+        "currency": "PLN",
+        "purchaseDate": "2024-09-22",
+        "taxId": "5261009190",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "circlek_fuel_59",
+      "category": "gas_stations",
+      "store": "Circle K",
+      "rawLines": [
+        "Circle K Polska Sp. z o.o.",
+        "ul. Pulawska 145, 02-715 Warszawa",
+        "Stacja Paliw Circle K 1520",
+        "NIP: 526-03-04-404",
+        "2024-07-20 20:15 Kasa 02",
+        "PARAGON FISKALNY",
+        "MILES PLUS DIESEL 50.00L * 6.59 = 329.50 A",
+        "PLYN DO SPRYSKIWACZY 4L 1 * 24.99 = 24.99 A",
+        "SP. A: 354.49 PTU: 66.29",
+        "SUMA PTU: 66.29",
+        "SUMA PLN: 354.49",
+        "DO ZAPLATY: 354.49 PLN",
+        "KARTA: 354.49"
+      ],
+      "expected": {
+        "storeName": "Circle K",
+        "totalAmount": 354.49,
+        "currency": "PLN",
+        "purchaseDate": "2024-07-20",
+        "taxId": "5260304404",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "moya_gas_station_60",
+      "category": "gas_stations",
+      "store": "Moya",
+      "rawLines": [
+        "Anwim S.A. Stacja MOYA",
+        "ul. Stefana Batorych 28, 02-591 Warszawa",
+        "Stacja Paliw Moya 210",
+        "NIP: 527-01-04-111",
+        "2024-08-30 07:50 Kasa 1",
+        "PARAGON FISKALNY",
+        "ON MOYA POWER 35.00L * 6.49 = 227.15 A",
+        "NAPOJ ENERGETYCZNY 0.25L 2 * 5.50 = 11.00 A",
+        "SP. OPODATKOWANA A: 238.15",
+        "SUMA PTU: 44.53",
+        "SUMA PLN: 238.15",
+        "DO ZAPLATY: 238.15 PLN",
+        "BLIK: 238.15"
+      ],
+      "expected": {
+        "storeName": "Moya",
+        "totalAmount": 238.15,
+        "currency": "PLN",
+        "purchaseDate": "2024-08-30",
+        "taxId": "5270104111",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    }
+  ]
+}

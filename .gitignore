@@ -19,6 +19,10 @@ web-build/
 assets/real_*.png
 assets/screen*.png
 
+# Test dataset photos (large binaries)
+test_dataset/images/
+fixtures/dataset/
+
 # Node & Package Managers
 node_modules/
 npm-debug.log*
