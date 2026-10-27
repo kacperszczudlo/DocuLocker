@@ -82,9 +82,7 @@ export default function ScanScreen() {
         const catRepo = new CategoryRepository(db);
         const list = await catRepo.listCategories();
         setCategories(list);
-        if (list.length > 0) {
-          setSelectedCategoryId(list[0].id);
-        }
+        // Brak wymuszonego wyboru pierwszej kategorii — użytkownik lub parser OCR ustawia ją na podstawie paragonu
       } catch (err) {
         console.error('Blad ladowania kategorii:', err);
       }
@@ -145,6 +143,8 @@ export default function ScanScreen() {
       console.log('[DocuLocker] Wynik parsowania paragonu:', JSON.stringify({
         suggestedTitle: parsed.suggestedTitle,
         storeName: parsed.storeName,
+        suggestedCategoryName: parsed.suggestedCategoryName,
+        suggestedReturnDays: parsed.suggestedReturnDays,
         totalAmount: parsed.totalAmount,
         purchaseDate: parsed.purchaseDate,
       }));
@@ -167,6 +167,27 @@ export default function ScanScreen() {
       }
       if (parsed.purchaseDate) {
         setPurchaseDate(parsed.purchaseDate.isoDate);
+      }
+      if (parsed.suggestedCategoryName) {
+        const match = categories.find(
+          (cat) => cat.name.toLowerCase() === parsed.suggestedCategoryName!.toLowerCase()
+        );
+        setSelectedCategoryId(match?.id ?? null);
+      } else {
+        setSelectedCategoryId(null);
+      }
+      if (parsed.suggestedReturnDays != null) {
+        setReturnDays(String(parsed.suggestedReturnDays));
+      } else if (parsed.storeName) {
+        try {
+          const db = await getDatabase();
+          const store = await new StoreRepository(db).findByName(parsed.storeName);
+          if (store?.default_return_days != null) {
+            setReturnDays(String(store.default_return_days));
+          }
+        } catch {
+          // zostaw domyslne 14
+        }
       }
 
       setDetectedConfidence({
@@ -392,7 +413,7 @@ export default function ScanScreen() {
               <TouchableOpacity
                 key={cat.id}
                 style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
-                onPress={() => setSelectedCategoryId(cat.id)}
+                onPress={() => setSelectedCategoryId(isSelected ? null : cat.id)}
               >
                 <Text style={[styles.categoryChipText, isSelected && styles.categoryChipTextSelected]}>
                   {cat.name}

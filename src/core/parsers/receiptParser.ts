@@ -3,6 +3,10 @@ import { OcrRecognitionResult, ParsedAmount, ParsedDate, ParsedReceiptData } fro
 interface StoreDefinition {
   readonly name: string;
   readonly matchRegex: RegExp;
+  /** Znormalizowana igla do dopasowan OCR (bez spacji, cyfry→litery). */
+  readonly normalizedNeedle: string;
+  readonly categoryName: string;
+  readonly defaultReturnDays: number;
 }
 
 /**
@@ -10,31 +14,60 @@ interface StoreDefinition {
  * Wykorzystywana do bezposredniego dopasowywania logotypow i naglowkow fiskalnych.
  */
 const KNOWN_STORES: readonly StoreDefinition[] = [
-  { name: 'Biedronka', matchRegex: /\b(biedronka|jeronimo\s+martins)\b/i },
-  { name: 'Lidl', matchRegex: /\b(lidl)\b/i },
-  { name: 'MediaMarkt', matchRegex: /\b(media\s*markt)\b/i },
-  { name: 'RTV Euro AGD', matchRegex: /\b(rtv\s*euro\s*agd|euro[- ]net)\b/i },
-  { name: 'IKEA', matchRegex: /\b(ikea)\b/i },
-  { name: 'Decathlon', matchRegex: /\b(decathlon)\b/i },
-  { name: 'Rossmann', matchRegex: /\b(rossmann)\b/i },
-  { name: 'Castorama', matchRegex: /\b(castorama)\b/i },
-  { name: 'Allegro', matchRegex: /\b(allegro)\b/i },
-  { name: 'Amazon', matchRegex: /\b(amazon)\b/i },
-  { name: 'Zabka', matchRegex: /\b(zabka|żabka)\b/i },
-  { name: 'Dino', matchRegex: /\b(dino\s+polska|dino)\b/i },
-  { name: 'Carrefour', matchRegex: /\b(carrefour)\b/i },
-  { name: 'Auchan', matchRegex: /\b(auchan)\b/i },
-  { name: 'Kaufland', matchRegex: /\b(kaufland)\b/i },
-  { name: 'Leroy Merlin', matchRegex: /\b(leroy\s*merlin)\b/i },
-  { name: 'Action', matchRegex: /\b(action(\s+polska)?)\b/i },
-  { name: 'Pepco', matchRegex: /\b(pepco)\b/i },
-  { name: 'Dealz', matchRegex: /\b(dealz)\b/i },
-  { name: 'Hebe', matchRegex: /\b(hebe)\b/i },
-  { name: 'Netto', matchRegex: /\b(netto)\b/i },
-  { name: 'Aldi', matchRegex: /\b(aldi)\b/i },
-  { name: 'Empik', matchRegex: /\b(empik)\b/i },
-  { name: 'CCC', matchRegex: /\b(ccc)\b/i },
+  store('Biedronka', /\b(biedronka|jeronimo\s+martins)\b/i, 'biedronka|jeronimomartins', 'Inne', 14),
+  store('Lidl', /\b(lidl)\b/i, 'lidl', 'Inne', 30),
+  store('MediaMarkt', /\b(media\s*markt)\b/i, 'mediamarkt', 'Elektronika i RTV', 30),
+  store('RTV Euro AGD', /\b(rtv\s*euro\s*agd|euro[- ]?net)\b/i, 'rtveuroagd|euronet', 'Elektronika i RTV', 14),
+  store('Media Expert', /\b(media\s*expert)\b/i, 'mediaexpert', 'Elektronika i RTV', 14),
+  store('x-kom', /\b(x[-\s]?kom)\b/i, 'xkom', 'Elektronika i RTV', 14),
+  store('Neonet', /\b(neonet)\b/i, 'neonet', 'Elektronika i RTV', 14),
+  store('IKEA', /\b(ikea)\b/i, 'ikea', 'Dom i Ogród', 365),
+  store('Decathlon', /\b(decathlon)\b/i, 'decathlon', 'Sport i Turystyka', 365),
+  store('Rossmann', /\b(rossmann)\b/i, 'rossmann', 'Zdrowie i Apteka', 14),
+  store('Castorama', /\b(castorama)\b/i, 'castorama', 'Dom i Ogród', 365),
+  store('Leroy Merlin', /\b(leroy\s*merlin)\b/i, 'leroymerlin', 'Dom i Ogród', 365),
+  store('Allegro', /\b(allegro)\b/i, 'allegro', 'Inne', 14),
+  store('Amazon', /\b(amazon)\b/i, 'amazon', 'Inne', 30),
+  store('Zabka', /\b(zabka|żabka)\b/i, 'zabka', 'Inne', 14),
+  store('Dino', /\b(dino\s+polska|dino)\b/i, 'dino', 'Inne', 14),
+  store('Carrefour', /\b(carrefour)\b/i, 'carrefour', 'Inne', 14),
+  store('Auchan', /\b(auchan)\b/i, 'auchan', 'Inne', 14),
+  store('Kaufland', /\b(kaufland)\b/i, 'kaufland', 'Inne', 14),
+  store('Action', /\b(action(\s+polska)?)\b/i, 'action', 'Inne', 14),
+  store('Pepco', /\b(pepco)\b/i, 'pepco', 'Odzież i Obuwie', 14),
+  store('Dealz', /\b(dealz)\b/i, 'dealz', 'Inne', 14),
+  store('Hebe', /\b(hebe)\b/i, 'hebe', 'Zdrowie i Apteka', 14),
+  store('Netto', /\b(netto)\b/i, 'netto', 'Inne', 14),
+  store('Aldi', /\b(aldi)\b/i, 'aldi', 'Inne', 14),
+  store('Empik', /\b(empik)\b/i, 'empik', 'Inne', 14),
+  store('CCC', /\b(ccc)\b/i, 'ccc', 'Odzież i Obuwie', 14),
+  store('Reserved', /\b(reserved)\b/i, 'reserved', 'Odzież i Obuwie', 14),
+  store('Smyk', /\b(smyk)\b/i, 'smyk', 'Inne', 14),
 ];
+
+const HEADER_SKIP_REGEX =
+  /\b(paragon|fiskalny|nip|data|suma|razem|total|kasa|kasjer|terminal|nr\s|ul\.|sprzeda|platn|gotow|blik|rozlicz|wydruk|godzin)\b/i;
+
+function store(
+  name: string,
+  matchRegex: RegExp,
+  normalizedNeedle: string,
+  categoryName: string,
+  defaultReturnDays: number
+): StoreDefinition {
+  return { name, matchRegex, normalizedNeedle, categoryName, defaultReturnDays };
+}
+
+/** Normalizuje tekst pod odporne dopasowanie OCR (spacje, diakrytyka, 0/1). */
+function normalizeForMatch(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'i')
+    .replace(/[^a-z0-9|]/g, '');
+}
 
 /**
  * Heurystyczny analizator paragonow fiskalnych (HeuristicReceiptParser).
@@ -53,7 +86,10 @@ export class HeuristicReceiptParser {
     const rawText = ocrResult.fullText;
     const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
 
-    const storeName = this.extractStoreName(lines);
+    const known = this.matchKnownStore(lines);
+    const storeName = known?.name ?? this.extractFallbackStoreName(lines);
+    const suggestedCategoryName = known?.categoryName ?? null;
+    const suggestedReturnDays = known?.defaultReturnDays ?? null;
     const totalAmount = this.extractTotalAmount(lines);
     const purchaseDate = this.extractPurchaseDate(lines);
     const detectedTaxId = this.extractTaxId(lines);
@@ -62,6 +98,8 @@ export class HeuristicReceiptParser {
     return {
       suggestedTitle,
       storeName,
+      suggestedCategoryName,
+      suggestedReturnDays,
       totalAmount,
       purchaseDate,
       detectedTaxId,
@@ -70,19 +108,54 @@ export class HeuristicReceiptParser {
   }
 
   /**
-   * Ekstrahuje nazwe sklepu lub marki, przeszukujac pierwsze 10 linii tekstu paragonu.
-   *
-   * @param lines Tablica oczyszczonych linii tekstu OCR.
-   * @returns Rozpoznana nazwa marki lub null, jesli nie dopasowano do bazy wzorcow.
+   * Dopasowuje znana siec handlowa w calym tekscie (nie tylko naglowek),
+   * z odpornoscia na typowe bledy OCR (0/O, 1/I, brak spacji).
    */
-  static extractStoreName(lines: readonly string[]): string | null {
-    const headerLines = lines.slice(0, 10);
-    for (const line of headerLines) {
-      for (const store of KNOWN_STORES) {
-        if (store.matchRegex.test(line)) {
-          return store.name;
+  static matchKnownStore(lines: readonly string[]): StoreDefinition | null {
+    for (const line of lines) {
+      for (const candidate of KNOWN_STORES) {
+        if (candidate.matchRegex.test(line)) {
+          return candidate;
         }
       }
+    }
+
+    const normalizedFull = normalizeForMatch(lines.join(' '));
+    for (const candidate of KNOWN_STORES) {
+      const needles = candidate.normalizedNeedle.split('|');
+      if (needles.some((needle) => needle.length >= 3 && normalizedFull.includes(needle))) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Ekstrahuje nazwe sklepu lub marki (kompatybilnosc wsteczna API).
+   */
+  static extractStoreName(lines: readonly string[]): string | null {
+    return this.matchKnownStore(lines)?.name ?? this.extractFallbackStoreName(lines);
+  }
+
+  /**
+   * Bierze pierwsza sensowna linie naglowka, gdy marka nie jest na liscie znanych sieci.
+   */
+  static extractFallbackStoreName(lines: readonly string[]): string | null {
+    for (const line of lines.slice(0, 8)) {
+      if (HEADER_SKIP_REGEX.test(line)) {
+        continue;
+      }
+      if (/\d{2}[-/.]\d{2}[-/.]\d{2,4}/.test(line)) {
+        continue;
+      }
+      if (!/[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{3,}/.test(line)) {
+        continue;
+      }
+      if (line.length > 60) {
+        continue;
+      }
+      return line.replace(/\s+/g, ' ').trim();
     }
     return null;
   }

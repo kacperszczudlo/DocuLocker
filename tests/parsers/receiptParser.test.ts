@@ -180,7 +180,7 @@ describe('HeuristicReceiptParser - Store and Tax ID Extraction', () => {
     expect(result.detectedTaxId).toBe('5270005984');
   });
 
-  it('generates fallback title when store is not recognized', () => {
+  it('uses unknown header as store name in suggested title', () => {
     const ocr = createMockOcrResult([
       'LOKALNA KAWIARNIA',
       'KAWA CZARNA 12.00',
@@ -189,8 +189,9 @@ describe('HeuristicReceiptParser - Store and Tax ID Extraction', () => {
     ]);
 
     const result = HeuristicReceiptParser.parse(ocr);
-    expect(result.storeName).toBeNull();
-    expect(result.suggestedTitle).toBe('Paragon 12.00 PLN (2026-10-20)');
+    expect(result.storeName).toBe('LOKALNA KAWIARNIA');
+    expect(result.suggestedTitle).toBe('Zakup: LOKALNA KAWIARNIA (12.00 PLN)');
+    expect(result.suggestedCategoryName).toBeNull();
   });
 
   it('detects Action store brand with standalone ACTION header', () => {
@@ -217,5 +218,57 @@ describe('HeuristicReceiptParser - Store and Tax ID Extraction', () => {
 
     const result = HeuristicReceiptParser.parse(ocr);
     expect(result.purchaseDate?.isoDate).toBe('2026-10-23');
+  });
+
+  it('detects known store when brand appears below the first 10 header lines', () => {
+    const ocr = createMockOcrResult([
+      'PARAGON FISKALNY',
+      'UL. DLUGA 1',
+      'MIASTO',
+      'KASA 01',
+      'KASJER JAN',
+      'NR WYDRUKU 12',
+      'GODZINA 10:00',
+      'TERMINAL 3',
+      'LINIA 9',
+      'LINIA 10',
+      'MEDIA MARKT POLSKA',
+      'SUMA PLN 199,00',
+      '2026-10-20',
+    ]);
+
+    const result = HeuristicReceiptParser.parse(ocr);
+    expect(result.storeName).toBe('MediaMarkt');
+    expect(result.suggestedCategoryName).toBe('Elektronika i RTV');
+    expect(result.suggestedReturnDays).toBe(30);
+  });
+
+  it('detects store despite OCR digit substitutions in brand name', () => {
+    const ocr = createMockOcrResult([
+      'B1EDR0NKA NR 88',
+      'NIP 779-10-11-327',
+      'SUMA PLN 12,00',
+      '2026-10-21',
+    ]);
+
+    const result = HeuristicReceiptParser.parse(ocr);
+    expect(result.storeName).toBe('Biedronka');
+    expect(result.suggestedCategoryName).toBe('Inne');
+    expect(result.suggestedReturnDays).toBe(14);
+  });
+
+  it('falls back to cleaned header line when brand is unknown', () => {
+    const ocr = createMockOcrResult([
+      'PARAGON FISKALNY',
+      'Kawiarnia Zielona',
+      'KAWA 12.00',
+      'SUMA PLN 12,00',
+      '2026-10-20',
+    ]);
+
+    const result = HeuristicReceiptParser.parse(ocr);
+    expect(result.storeName).toBe('Kawiarnia Zielona');
+    expect(result.suggestedCategoryName).toBeNull();
+    expect(result.suggestedReturnDays).toBeNull();
   });
 });

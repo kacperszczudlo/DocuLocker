@@ -18,5 +18,7 @@ describe('ScanReceiptUseCase', () => {
     expect(result.totalAmount?.currency).toBe('PLN');
     expect(result.purchaseDate?.isoDate).toBe('2026-10-23');
     expect(result.suggestedTitle).toContain('Biedronka');
+    expect(result.suggestedCategoryName).toBe('Inne');
+    expect(result.suggestedReturnDays).toBe(14);
   });
 });
