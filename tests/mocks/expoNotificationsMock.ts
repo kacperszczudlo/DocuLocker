@@ -45,6 +45,31 @@ export function __clearMockNotifications() {
   scheduledList = [];
 }
 
+export const SchedulableTriggerInputTypes = {
+  CALENDAR: 'calendar',
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  YEARLY: 'yearly',
+  DATE: 'date',
+  TIME_INTERVAL: 'timeInterval',
+} as const;
+
+export const AndroidImportance = {
+  UNKNOWN: 0,
+  UNSPECIFIED: 1,
+  NONE: 2,
+  MIN: 3,
+  LOW: 4,
+  DEFAULT: 5,
+  HIGH: 6,
+  MAX: 7,
+} as const;
+
+export async function setNotificationChannelAsync(channelId: string, channel: unknown) {
+  return channel;
+}
+
 export default {
   requestPermissionsAsync,
   getPermissionsAsync,
@@ -53,4 +78,7 @@ export default {
   cancelScheduledNotificationAsync,
   getAllScheduledNotificationsAsync,
   cancelAllScheduledNotificationsAsync,
+  setNotificationChannelAsync,
+  SchedulableTriggerInputTypes,
+  AndroidImportance,
 };

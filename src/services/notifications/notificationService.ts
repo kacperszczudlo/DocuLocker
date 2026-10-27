@@ -37,7 +37,7 @@ export interface NotificationDriver {
       data?: Record<string, unknown>;
       sound?: boolean;
     };
-    trigger: Date | { date: Date };
+    trigger: Notifications.NotificationTriggerInput | Date | { date: Date } | unknown;
   }): Promise<string>;
   cancelScheduledNotificationAsync(identifier: string): Promise<void>;
   getAllScheduledNotificationsAsync(): Promise<
@@ -61,6 +61,24 @@ try {
   });
 } catch {
   // Ignorujemy w srodowisku bez wsparcia natywnego (np. testy jednostkowe Node)
+}
+
+/**
+ * Konfiguruje domyslny kanal powiadomien na systemie Android (wymagany od Android 8.0+).
+ */
+export async function setupNotificationChannels(): Promise<void> {
+  try {
+    if (typeof Notifications.setNotificationChannelAsync === 'function') {
+      await Notifications.setNotificationChannelAsync('warranties', {
+        name: 'Alerty gwarancyjne i terminy zwrotów',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#0284C7',
+      });
+    }
+  } catch (err) {
+    console.warn('[DocuLocker] Blad podczas rejestracji kanalu powiadomien:', err);
+  }
 }
 
 /**
@@ -135,7 +153,11 @@ export class NotificationService {
             },
             sound: true,
           },
-          trigger: triggerDate30d,
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: triggerDate30d,
+            channelId: 'warranties',
+          },
         });
       } catch (err) {
         console.warn('[DocuLocker] Nie udalo sie zaplanowac alertu 30d:', err);
@@ -158,7 +180,11 @@ export class NotificationService {
             },
             sound: true,
           },
-          trigger: triggerDate7d,
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: triggerDate7d,
+            channelId: 'warranties',
+          },
         });
       } catch (err) {
         console.warn('[DocuLocker] Nie udalo sie zaplanowac alertu 7d:', err);
@@ -183,7 +209,11 @@ export class NotificationService {
               },
               sound: true,
             },
-            trigger: triggerReturn,
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: triggerReturn,
+              channelId: 'warranties',
+            },
           });
         } catch (err) {
           console.warn('[DocuLocker] Nie udalo sie zaplanowac alertu zwrotu:', err);
