@@ -27,6 +27,7 @@ import { NotificationService } from '@/services/notifications/notificationServic
 import { CategoryRow } from '@/database/types';
 import { colors, spacing, radii, typography, touchTargets, iconSizes, shadows, CATEGORY_ICON_MAP } from '@/theme/tokens';
 import { BrandLogo } from '@/components/BrandLogo';
+import { CameraDisclosureModal } from '@/components/CameraDisclosureModal';
 
 const WARRANTY_OPTIONS = [
   { label: 'Brak', months: 0, icon: 'close-circle-outline' },
@@ -51,6 +52,7 @@ export default function ScanScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCameraDisclosure, setShowCameraDisclosure] = useState(false);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [ocrRawText, setOcrRawText] = useState<string | null>(null);
   const [ocrProcessingTime, setOcrProcessingTime] = useState<number | null>(null);
@@ -88,38 +90,66 @@ export default function ScanScreen() {
     loadCategories();
   }, []);
 
+  const launchCamera = async () => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        setImageUri(selectedUri);
+        await processReceiptImage(selectedUri);
+      }
+    } catch (err) {
+      console.error('[DocuLocker] Błąd aparatu:', err);
+      Alert.alert('Błąd', 'Nie udało się wykonać zdjęcia aparatem.');
+    }
+  };
+
+  const handleCameraDisclosureAccept = async () => {
+    setShowCameraDisclosure(false);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Brak uprawnień', 'Aplikacja potrzebuje dostępu do aparatu.');
+        return;
+      }
+      await launchCamera();
+    } catch (err) {
+      console.error('[DocuLocker] Błąd podczas pytania o uprawnienia aparatu:', err);
+      Alert.alert('Błąd', 'Wystąpił problem z aparatem.');
+    }
+  };
+
   const handlePickImage = async (useCamera: boolean) => {
     try {
-      let result: ImagePicker.ImagePickerResult;
-
       if (useCamera) {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Brak uprawnień', 'Aplikacja potrzebuje dostępu do aparatu.');
+        const permission = await ImagePicker.getCameraPermissionsAsync();
+        if (!permission.granted) {
+          setShowCameraDisclosure(true);
           return;
         }
-        result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ['images'],
-          quality: 0.8,
-          allowsEditing: false,
-        });
+        await launchCamera();
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert('Brak uprawnień', 'Aplikacja potrzebuje dostępu do galerii.');
           return;
         }
-        result = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           quality: 0.8,
           allowsEditing: false,
         });
-      }
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedUri = result.assets[0].uri;
-        setImageUri(selectedUri);
-        await processReceiptImage(selectedUri);
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const selectedUri = result.assets[0].uri;
+          setImageUri(selectedUri);
+          await processReceiptImage(selectedUri);
+        }
       }
     } catch (err) {
       console.error('[DocuLocker] Błąd wyboru zdjęcia:', err);
@@ -568,6 +598,12 @@ export default function ScanScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      <CameraDisclosureModal
+        visible={showCameraDisclosure}
+        onAccept={handleCameraDisclosureAccept}
+        onDecline={() => setShowCameraDisclosure(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
