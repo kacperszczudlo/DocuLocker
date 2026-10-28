@@ -356,6 +356,9 @@ export class HeuristicReceiptParser {
   static extractTaxId(lines: readonly string[]): string | null {
     const nipRegex = /\bnip[:\s]*([0-9oOiIlLsS\s-]{10,18})/i;
     for (const line of lines) {
+      if (/\bnip\s*(?:nabywcy|klienta)\b/i.test(line)) {
+        continue;
+      }
       const match = nipRegex.exec(line);
       if (match) {
         const normalized = match[1]

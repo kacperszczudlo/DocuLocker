@@ -1652,6 +1652,243 @@
         "categoryName": "Inne",
         "returnDays": 14
       }
+    },
+    {
+      "id": "invoice_leroy_merlin_materials_61",
+      "category": "invoices_a4",
+      "store": "Leroy Merlin",
+      "rawLines": [
+        "FAKTURA VAT NR FS/2026/03/00142",
+        "DATA WYSTAWIENIA: 2026-03-02",
+        "DATA SPRZEDAZY: 2026-03-02",
+        "SPRZEDAWCA: LEROY MERLIN POLSKA SP. Z O.O.",
+        "UL. TARGOWA 72, 03-734 WARSZAWA",
+        "NIP: 113-00-05-047",
+        "NABYWCA: JAN KOWALSKI REMONTY",
+        "NIP NABYWCY: 5211234567",
+        "1. PLYTA GIPSOWO-KARTONOWA 12.5MM 20 SZT * 38.50 = 770.00 PLN A",
+        "RAZEM DO ZAPLATY: 1845.20 PLN",
+        "ZAPLACONO PRZELEWEM: 1845.20 PLN"
+      ],
+      "expected": {
+        "storeName": "Leroy Merlin",
+        "totalAmount": 1845.2,
+        "currency": "PLN",
+        "purchaseDate": "2026-03-02",
+        "taxId": "1130005047",
+        "categoryName": "Dom i Ogród",
+        "returnDays": 365
+      }
+    },
+    {
+      "id": "invoice_xkom_dell_laptop_62",
+      "category": "invoices_a4",
+      "store": "x-kom",
+      "rawLines": [
+        "FAKTURA VAT NR FA/2026/02/9812",
+        "DATA WYSTAWIENIA: 2026-02-10",
+        "DATA SPRZEDAZY: 2026-02-10",
+        "SPRZEDAWCA: X-KOM SP. Z O.O.",
+        "UL. BOJEMSKIEGO 25, 42-202 CZESTOCHOWA",
+        "NIP: 949-21-07-026",
+        "NABYWCA: SOFTWARE DEV CORP",
+        "NIP NABYWCY: 8971239988",
+        "1. LAPTOP DELL XPS 15 I7/32GB/1TB 1 SZT * 4999.00 = 4999.00 PLN A",
+        "DO ZAPLATY: 4999.00 PLN"
+      ],
+      "expected": {
+        "storeName": "x-kom",
+        "totalAmount": 4999,
+        "currency": "PLN",
+        "purchaseDate": "2026-02-10",
+        "taxId": "9492107026",
+        "categoryName": "Elektronika i RTV",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "invoice_b2b_cloudcode_services_63",
+      "category": "invoices_a4",
+      "store": "CloudCode Sp. z o.o.",
+      "rawLines": [
+        "CloudCode Sp. z o.o.",
+        "FAKTURA VAT NR FV/2026/01/045",
+        "DATA WYSTAWIENIA: 2026-01-31",
+        "DATA WYKONANIA USLUGI: 2026-01-31",
+        "UL. POSTEPU 14, 02-676 WARSZAWA",
+        "NIP: 521-98-76-543",
+        "NABYWCA: CLIENT POLSKA S.A.",
+        "NIP NABYWCY: 7010998877",
+        "USLUGI PROGRAMISTYCZNE I WDROZENIOWE CLOUD",
+        "DO ZAPLATY: 12300.00 PLN"
+      ],
+      "expected": {
+        "storeName": "CloudCode Sp. z o.o.",
+        "totalAmount": 12300,
+        "currency": "PLN",
+        "purchaseDate": "2026-01-31",
+        "taxId": "5219876543"
+      }
+    },
+    {
+      "id": "edge_eft_pos_slip_nonfiscal_64",
+      "category": "edge_cases",
+      "store": "Polskie ePłatności",
+      "rawLines": [
+        "Polskie ePłatności S.A.",
+        "POTWIERDZENIE TRANSAKCJI",
+        "TERMINAL: 12345678",
+        "KARTA: **** **** **** 4321",
+        "DATA: 2026-02-15 14:22",
+        "SPRZEDAZ",
+        "KWOTA: 125,00 PLN",
+        "STATUS: ZAAKCEPTOWANA"
+      ],
+      "expected": {
+        "storeName": "Polskie ePłatności S.A.",
+        "totalAmount": 125,
+        "currency": "PLN",
+        "purchaseDate": "2026-02-15",
+        "taxId": null
+      }
+    },
+    {
+      "id": "edge_faded_biedronka_thermal_65",
+      "category": "edge_cases",
+      "store": "Biedronka",
+      "rawLines": [
+        "Biedronka Sklep 2145",
+        "Jeronimo Martins Polska S.A.",
+        "NIP: 779-10-11-327",
+        "2026-01-10 11:20",
+        "PARAGON FISKALNY",
+        "MASLO EXTRA 200G 7.49",
+        "SUMA PLN: 38.20",
+        "DO ZAPLATY: 38.20 PLN"
+      ],
+      "expected": {
+        "storeName": "Biedronka",
+        "totalAmount": 38.2,
+        "currency": "PLN",
+        "purchaseDate": "2026-01-10",
+        "taxId": "7791011327",
+        "categoryName": "Inne",
+        "returnDays": 14
+      }
+    },
+    {
+      "id": "edge_crumpled_lidl_shadows_66",
+      "category": "edge_cases",
+      "store": "Lidl",
+      "rawLines": [
+        "Lidl sp. z o.o. sp. k.",
+        "NIP 781-18-97-323",
+        "2026-03-12 16:45",
+        "PARAGON FISKALNY",
+        "SER ZOLTY EDAM 8.90 A",
+        "SUMA PLN: 54.30",
+        "DO ZAPLATY: 54.30"
+      ],
+      "expected": {
+        "storeName": "Lidl",
+        "totalAmount": 54.3,
+        "currency": "PLN",
+        "purchaseDate": "2026-03-12",
+        "taxId": "7811897323",
+        "categoryName": "Inne",
+        "returnDays": 30
+      }
+    },
+    {
+      "id": "edge_nonfiscal_buyer_nip_only_67",
+      "category": "edge_cases",
+      "store": "Sklep Wielobranżowy Express",
+      "rawLines": [
+        "Sklep Wielobranżowy Express",
+        "2026-02-18 19:30",
+        "NIP NABYWCY: 6762451234",
+        "DO ZAPLATY: 401.36 PLN"
+      ],
+      "expected": {
+        "storeName": "Sklep Wielobranżowy Express",
+        "totalAmount": 401.36,
+        "currency": "PLN",
+        "purchaseDate": "2026-02-18",
+        "taxId": null
+      }
+    },
+    {
+      "id": "discount_kiosk_wroclaw_68",
+      "category": "discount_variety",
+      "store": "Kiosk Prasa Książki",
+      "rawLines": [
+        "Kiosk Prasa Książki",
+        "ul. Legnicka 12, Wrocław",
+        "NIP: 897-10-22-334",
+        "2026-01-19 08:45",
+        "PARAGON FISKALNY",
+        "GAZETA CODZIENNA 4.50 A",
+        "BILET MPK WROCLAW 3.49 B",
+        "SUMA PLN: 7.99",
+        "DO ZAPLATY: 7.99 PLN",
+        "GOTOWKA: 10.00",
+        "RESZTA: 2.01"
+      ],
+      "expected": {
+        "storeName": "Kiosk Prasa Książki",
+        "totalAmount": 7.99,
+        "currency": "PLN",
+        "purchaseDate": "2026-01-19",
+        "taxId": "8971022334"
+      }
+    },
+    {
+      "id": "grocery_bar_szalas_gastronomy_69",
+      "category": "grocery",
+      "store": "Bar Gastronomiczny Szałas",
+      "rawLines": [
+        "Bar Gastronomiczny Szałas",
+        "Żory, ul. Pszczyńska 15",
+        "NIP: 651-14-22-901",
+        "2025-08-28 15:10",
+        "PARAGON FISKALNY",
+        "RYBA SMAZONA DORSZ 32.00 B",
+        "FRYTKI DUZE 8.00 B",
+        "KOMPOT OWOCOWY 5.00 B",
+        "SUMA PLN: 45.00",
+        "DO ZAPLATY: 45.00 PLN"
+      ],
+      "expected": {
+        "storeName": "Bar Gastronomiczny Szałas",
+        "totalAmount": 45,
+        "currency": "PLN",
+        "purchaseDate": "2025-08-28",
+        "taxId": "6511422901"
+      }
+    },
+    {
+      "id": "grocery_piekarnia_ruchala_70",
+      "category": "grocery",
+      "store": "Piekarnia Cukiernia Ruchała",
+      "rawLines": [
+        "Piekarnia Cukiernia Ruchała",
+        "Nowy Sącz",
+        "NIP: 734-11-22-333",
+        "2026-01-05 07:15",
+        "PARAGON FISKALNY",
+        "CHLEB ZYTNI RAZOWY 5.50 A",
+        "BULKA KAJZERKA 4 SZT * 0.70 = 2.80 A",
+        "SUMA PLN: 8.30",
+        "DO ZAPLATY: 8.30 PLN",
+        "GOTOWKA: 8.30"
+      ],
+      "expected": {
+        "storeName": "Piekarnia Cukiernia Ruchała",
+        "totalAmount": 8.3,
+        "currency": "PLN",
+        "purchaseDate": "2026-01-05",
+        "taxId": "7341122333"
+      }
     }
   ]
 }

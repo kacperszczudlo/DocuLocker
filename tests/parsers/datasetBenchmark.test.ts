@@ -14,7 +14,7 @@ interface GroundTruthCase {
     totalAmount: number;
     currency: string;
     purchaseDate: string;
-    taxId: string;
+    taxId: string | null;
     categoryName?: string;
     returnDays?: number;
   };
