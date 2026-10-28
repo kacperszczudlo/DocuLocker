@@ -92,4 +92,16 @@ export class FileStorageService {
       // Idempotent delete - ignorujemy brak istnienia pliku na dysku
     }
   }
+
+  /**
+   * Usuwa caly katalog ze zdjeciami paragonow (uzywane podczas resetu danych uzytkownika).
+   */
+  async deleteAllReceipts(): Promise<void> {
+    const receiptsDir = this.getReceiptDirectory();
+    try {
+      await this.driver.deleteAsync(receiptsDir, { idempotent: true });
+    } catch {
+      // Idempotent delete
+    }
+  }
 }

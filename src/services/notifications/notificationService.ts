@@ -249,6 +249,20 @@ export class NotificationService {
   }
 
   /**
+   * Anuluje wszystkie zaplanowane powiadomienia w systemie (np. podczas resetu bazy).
+   */
+  async cancelAllAlerts(): Promise<void> {
+    try {
+      const scheduled = await this.driver.getAllScheduledNotificationsAsync();
+      for (const alert of scheduled) {
+        await this.driver.cancelScheduledNotificationAsync(alert.identifier);
+      }
+    } catch (err) {
+      console.warn('[DocuLocker] Blad podczas anulowania wszystkich powiadomien:', err);
+    }
+  }
+
+  /**
    * Tworzy obiekt Date dla podanego dnia ISO o zadanej godzinie lokalnej.
    *
    * @param isoDate Data w formacie YYYY-MM-DD.
