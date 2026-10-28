@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polityka Prywatności / Privacy Policy - DocuLocker</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --primary: #0284c7;
+      --primary-light: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #10b981;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      padding: 32px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .badge {
+      display: inline-block;
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: var(--primary-light);
+      font-size: 20px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin: 16px 0 8px;
+    }
+    p, li {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    ul {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+    .highlight-box {
+      background-color: rgba(2, 132, 199, 0.12);
+      border-left: 4px solid var(--primary);
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+    .highlight-box p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+    footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Zgodność z Google Play Developer Policy</div>
+      <h1>DocuLocker &mdash; Polityka Prywatności</h1>
+      <div class="subtitle">Data ostatniej aktualizacji: 28 października 2026 r.</div>
+    </header>
+
+    <div class="card">
+      <h2>1. Zasada Zero-Data (Zero Data Collection)</h2>
+      <div class="highlight-box">
+        <p><strong>Aplikacja DocuLocker nie gromadzi, nie przetwarza w chmurze ani nie udostępnia żadnych danych użytkownika podmiotom trzecim.</strong></p>
+      </div>
+      <ul>
+        <li><strong>Brak konta i logowania:</strong> Aplikacja nie wymaga rejestracji, podawania adresu e-mail, numeru telefonu ani tworzenia profili.</li>
+        <li><strong>Brak zewnętrznych serwerów:</strong> DocuLocker działa w 100% lokalnie w trybie offline. Aplikacja nie posiada własnego backendu sieciowego.</li>
+        <li><strong>Brak analityki i trackerów:</strong> Kod źródłowy nie zawiera żadnych bibliotek reklamowych, SDK profilujących ani narzędzi telemetrii.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>2. Lokalne rozpoznawanie tekstu OCR (Edge AI)</h2>
+      <p>Podczas skanowania paragonu lub wyboru zdjęcia z pamięci telefonu:</p>
+      <ul>
+        <li>Optyczne rozpoznawanie tekstu (OCR) odbywa się wyłącznie na procesorze / NPU Twojego urządzenia za pomocą biblioteki Google ML Kit.</li>
+        <li>Zdjęcia ani odczytany tekst nigdy nie są przesyłane przez sieć ani do serwerów Google, ani do żadnych innych odbiorców.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>3. Uprawnienia systemowe i przeznaczenie</h2>
+      <ul>
+        <li><strong>Aparat (CAMERA):</strong> Wykorzystywany wyłącznie na żądanie użytkownika w celu zrobienia zdjęcia paragonu lub faktury bezpośrednio w aplikacji. Przed wywołaniem aparat wyświetla czytelne powiadomienie (Prominent Disclosure).</li>
+        <li><strong>Powiadomienia (POST_NOTIFICATIONS):</strong> Wykorzystywane do wyświetlania lokalnych przypomnień o kończących się okresach gwarancji (30 i 7 dni wcześniej) oraz terminach zwrotu (2 dni wcześniej).</li>
+        <li><strong>Pamięć wewnętrzna (Piaskownica aplikacji):</strong> Wszystkie zdjęcia oraz baza SQLite są przechowywane w prywatnym katalogu aplikacji niedostępnym dla innych programów.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. Kontrola użytkownika i usuwanie danych</h2>
+      <p>Użytkownik posiada pełną, autonomiczną kontrolę nad wszelkimi danymi zapisanymi na telefonie:</p>
+      <ul>
+        <li>W ekranie <em>Ustawienia &rarr; Zarządzanie Danymi i Prywatność</em> dostępna jest funkcja <strong>"Wyczyść wszystkie dane lokalne"</strong>, która nieodwracalnie usuwa całą bazę SQLite, pliki zdjęć oraz anuluje aktywne powiadomienia.</li>
+        <li>Odinstalowanie aplikacji z telefonu skutkuje natychmiastowym i trwałym usunięciem całej zawartości piaskownicy.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5. English Summary / Zero-Data Declaration</h2>
+      <p>DocuLocker is an offline-first document and receipt locker. It does not collect, transmit, sell, or analyze personal or financial data. All OCR operations run on-device. There are no user accounts, no telemetry frameworks, and no remote servers.</p>
+    </div>
+
+    <div class="card">
+      <h2>6. Kontakt i Repozytorium</h2>
+      <p>Pytania dotyczące prywatności oraz audytu kodu źródłowego można zgłaszać bezpośrednio w repozytorium projektu: <a href="https://github.com/kacpe/DocuLocker" style="color: var(--primary-light);">https://github.com/kacpe/DocuLocker</a></p>
+    </div>
+
+    <footer>
+      &copy; 2026 DocuLocker Mobile. Wszelkie prawa zastrzeżone. Ochrona danych zgodna z RODO / GDPR oraz Google Play Developer Policy.
+    </footer>
+  </div>
+</body>
+</html>

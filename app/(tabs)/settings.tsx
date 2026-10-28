@@ -1,18 +1,64 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radii, touchTargets, iconSizes, shadows } from '@/theme/tokens';
 import { BrandLogo } from '@/components/BrandLogo';
+import { getDatabase } from '@/database/connection';
+import { DataPurgeService } from '@/services/storage/dataPurgeService';
 
 /**
  * Ekran ustawień oraz informacji o architekturze bezpieczeństwa i parametrach prawnych.
  * Zaprojektowany z pełną wektorową oprawą graficzną i architekturą skali UI.
  */
 export default function SettingsScreen() {
+  const [isPurging, setIsPurging] = useState(false);
+
   const handlePrivacyInfo = () => {
     Alert.alert(
       'Manifest Prywatności Zero-Data',
       'DocuLocker nie posiada zewnętrznego serwera ani konta w chmurze.\n\nWszystkie Twoje paragony, zdjęcia, odczyty OCR oraz kwoty są przechowywane wyłącznie w lokalnej bazie SQLite w piaskownicy Twojego telefonu.\n\nŻadne dane analityczne ani telemetria nie są wysyłane przez sieć.'
+    );
+  };
+
+  const handleOpenPrivacyPolicy = async () => {
+    const url = 'https://kacpe.github.io/DocuLocker/privacy-policy';
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        handlePrivacyInfo();
+      }
+    } catch {
+      handlePrivacyInfo();
+    }
+  };
+
+  const handlePurgeData = () => {
+    Alert.alert(
+      'Wyczyść wszystkie dane',
+      'Ta operacja bezpowrotnie usunie wszystkie Twoje paragony, zdjęcia, gwarancje i historię zakupów z tego urządzenia.\n\nCzy na pewno chcesz kontynuować?',
+      [
+        { text: 'Anuluj', style: 'cancel' },
+        {
+          text: 'Usuń wszystko',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsPurging(true);
+              const db = await getDatabase();
+              const purgeService = new DataPurgeService(db);
+              await purgeService.purgeAllUserData();
+              Alert.alert('Sukces', 'Wszystkie dane zostały trwale usunięte z urządzenia.');
+            } catch (err) {
+              console.error('Błąd czyszczenia danych:', err);
+              Alert.alert('Błąd', 'Nie udało się usunąć wszystkich danych.');
+            } finally {
+              setIsPurging(false);
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -41,16 +87,78 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={styles.manifestButtonsRow}>
+          <TouchableOpacity
+            style={styles.manifestBtn}
+            onPress={handlePrivacyInfo}
+            activeOpacity={touchTargets.activeOpacity}
+            accessibilityRole="button"
+            accessibilityLabel="Szczegóły ochrony danych"
+            hitSlop={touchTargets.minHitSlop}
+          >
+            <Ionicons name="information-circle-outline" size={16} color={colors.primaryLight} style={{ marginRight: 6 }} />
+            <Text style={styles.manifestBtnText}>Szczegóły ochrony</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.manifestBtn, styles.manifestOnlineBtn]}
+            onPress={handleOpenPrivacyPolicy}
+            activeOpacity={touchTargets.activeOpacity}
+            accessibilityRole="button"
+            accessibilityLabel="Polityka Prywatności Online"
+            hitSlop={touchTargets.minHitSlop}
+          >
+            <Ionicons name="open-outline" size={15} color={colors.textPrimary} style={{ marginRight: 6 }} />
+            <Text style={styles.manifestOnlineBtnText}>Polityka Online</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Sekcja Zarządzania Danymi i Prywatności */}
+      <View style={styles.sectionHeaderRow}>
+        <Ionicons name="trash-outline" size={15} color={colors.textSecondary} style={{ marginRight: 6 }} />
+        <Text style={styles.sectionHeader}>Zarządzanie Danymi i Prywatność</Text>
+      </View>
+
+      <View style={styles.card}>
         <TouchableOpacity
-          style={styles.manifestBtn}
-          onPress={handlePrivacyInfo}
+          style={styles.actionRow}
+          onPress={handleOpenPrivacyPolicy}
           activeOpacity={touchTargets.activeOpacity}
           accessibilityRole="button"
-          accessibilityLabel="Szczegóły ochrony danych"
-          hitSlop={touchTargets.minHitSlop}
+          accessibilityLabel="Otwórz pełną politykę prywatności w przeglądarce"
         >
-          <Ionicons name="information-circle-outline" size={16} color={colors.primaryLight} style={{ marginRight: 6 }} />
-          <Text style={styles.manifestBtnText}>Szczegóły ochrony danych</Text>
+          <View style={[styles.itemIconBox, { backgroundColor: 'rgba(2, 132, 199, 0.15)' }]}>
+            <Ionicons name="document-text-outline" size={20} color={colors.primaryLight} />
+          </View>
+          <View style={styles.itemContent}>
+            <Text style={styles.itemTitle}>Polityka Prywatności (Online HTML)</Text>
+            <Text style={styles.itemDesc}>Otwórz oficjalny dokument zgodny z Google Play</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={styles.actionRow}
+          onPress={handlePurgeData}
+          disabled={isPurging}
+          activeOpacity={touchTargets.activeOpacity}
+          accessibilityRole="button"
+          accessibilityLabel="Trwale wyczyść wszystkie dane i zresetuj aplikację"
+        >
+          <View style={[styles.itemIconBox, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+            {isPurging ? (
+              <ActivityIndicator size="small" color={colors.danger} />
+            ) : (
+              <Ionicons name="trash-bin-outline" size={20} color={colors.danger} />
+            )}
+          </View>
+          <View style={styles.itemContent}>
+            <Text style={[styles.itemTitle, { color: colors.danger }]}>Wyczyść wszystkie dane lokalne</Text>
+            <Text style={styles.itemDesc}>Usuń bazę SQLite, zdjęcia paragonów i zaplanowane alerty</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -219,22 +327,38 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
+  manifestButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+    justifyContent: 'center',
+  },
   manifestBtn: {
     backgroundColor: 'rgba(2, 132, 199, 0.12)',
     borderWidth: 1,
     borderColor: colors.primaryLight,
     paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 44,
+    flex: 1,
   },
   manifestBtnText: {
     color: colors.primaryLight,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
+  },
+  manifestOnlineBtn: {
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderSubtle,
+  },
+  manifestOnlineBtnText: {
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 12,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -257,6 +381,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     ...shadows.subtle,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
   },
   itemRow: {
     flexDirection: 'row',

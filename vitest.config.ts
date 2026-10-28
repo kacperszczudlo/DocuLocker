@@ -14,6 +14,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'react-native': path.resolve(__dirname, './tests/mocks/reactNativeMock.ts'),
+      '@expo/vector-icons': path.resolve(__dirname, './tests/mocks/vectorIconsMock.ts'),
       'expo-sqlite': path.resolve(__dirname, './tests/mocks/expoSqliteMock.ts'),
       'expo-file-system/legacy': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
       'expo-file-system': path.resolve(__dirname, './tests/mocks/expoFileSystemMock.ts'),
